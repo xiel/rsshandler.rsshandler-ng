@@ -42,11 +42,11 @@ task copyAndSign << {
     }
 }
 
-task uploadJar << {
+task uploadJar(dependsOn: 'jar') << {
   ant.gcupload(username:gcusername, password:gcpassword, projectname:"rsshandler", 
-      filename:'build/signed/rsshandler-1.0.jar', targetfilename:'rsshandler-1.0.jar', summary:"zzz", labels:"Featured")
+      filename:'build/signed/rsshandler-1.0.jar', targetfilename:'rsshandler-1.0.jar', summary:"RSS Handler java binary files", labels:"Featured")
   ant.gcupload(username:gcusername, password:gcpassword, projectname:"rsshandler", 
-      filename:'build/signed/rsshandler.jnlp', targetfilename:'rsshandler.jnlp', summary:"zzz", labels:"Featured")
+      filename:'build/signed/rsshandler.jnlp', targetfilename:'rsshandler.jnlp', summary:"JWS installation script", labels:"Featured")
 }
 
 task uploadAll << {
@@ -54,7 +54,7 @@ task uploadAll << {
   collection.each { 
     ant.gcupload(username:gcusername, password:gcpassword, projectname:"rsshandler", 
         filename:it, 
-          targetfilename:it.name, summary:"zzz", labels:"Featured")
+          targetfilename:it.name, summary:"automatic", labels:"")
   }
 }
 

@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="utf-8"?>
 <jnlp
   spec="6.0+"
-  codebase="http://localhost:8080/"
+  codebase="http://rsshandler.googlecode.com/files/"
   href="rsshandler.jnlp">
   <information>
     <title>RSS Handler</title>
@@ -11,6 +11,7 @@
   <security>
       <all-permissions/>
   </security>
+  <update check="always" policy="always">
   <resources>
     <j2se version="1.6+"/>
     <jar href="rsshandler-1.0.jar" main="true" />
