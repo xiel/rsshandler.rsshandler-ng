@@ -1,0 +1,40 @@
+usePlugin 'java'
+
+sourceCompatibility = 1.6
+
+archivesBaseName = 'rsshandler'
+
+version = '1.0'
+
+manifest.mainAttributes(
+    'Main-Class': 'com.rsshandler.Main',
+)
+
+repositories {
+    mavenCentral()
+}
+
+dependencies {
+    compile group: 'org.eclipse.jetty', name: 'jetty-server', version: '7.0.1.v20091125'
+    compile group: 'org.eclipse.jetty', name: 'jetty-servlet', version: '7.0.1.v20091125'
+    compile group: 'org.eclipse.jetty', name: 'jetty-util', version: '7.0.1.v20091125'
+    compile group: 'org.eclipse.jetty', name: 'jetty-http', version: '7.0.1.v20091125'
+    compile group: 'javax.servlet', name: 'servlet-api', version: '2.5'
+    testCompile group: 'junit', name: 'junit', version: '4.+'
+}
+
+jar.doLast {
+  ant.signjar(destDir: 'build/signed', jar: tasks.jar.archivePath, alias:"myself", keystore:"myKeystore",
+          storepass:"123456", preservelastmodified:"true")
+}
+
+task copyAndSign << {
+    ant.delete(dir:'build/signed')
+    ant.mkdir(dir:'build/signed')
+    for(file in configurations.runtime.resolve()) {
+      ant.signjar(destDir: 'build/signed', jar: file, alias:"myself", keystore:"myKeystore",
+              storepass:"123456", preservelastmodified:"true")
+    }
+    ant.copy(file:'rsshandler.jnlp', todir:'build/signed')
+}
+
