@@ -23,9 +23,14 @@ dependencies {
     testCompile group: 'junit', name: 'junit', version: '4.+'
 }
 
+ant {
+  taskdef( name: 'gcupload', classname: 'net.bluecow.googlecode.ant.GoogleCodeUploadTask', classpath: 'ant/ant-googlecode-0.0.2.jar' )
+}
+
 jar.doLast {
   ant.signjar(destDir: 'build/signed', jar: tasks.jar.archivePath, alias:"myself", keystore:"myKeystore",
           storepass:"123456", preservelastmodified:"true")
+  ant.copy(file:'rsshandler.jnlp', todir:'build/signed')
 }
 
 task copyAndSign << {
@@ -35,6 +40,22 @@ task copyAndSign << {
       ant.signjar(destDir: 'build/signed', jar: file, alias:"myself", keystore:"myKeystore",
               storepass:"123456", preservelastmodified:"true")
     }
-    ant.copy(file:'rsshandler.jnlp', todir:'build/signed')
 }
+
+task uploadJar << {
+  ant.gcupload(username:gcusername, password:gcpassword, projectname:"rsshandler", 
+      filename:'build/signed/rsshandler-1.0.jar', targetfilename:'rsshandler-1.0.jar', summary:"zzz", labels:"Featured")
+  ant.gcupload(username:gcusername, password:gcpassword, projectname:"rsshandler", 
+      filename:'build/signed/rsshandler.jnlp', targetfilename:'rsshandler.jnlp', summary:"zzz", labels:"Featured")
+}
+
+task uploadAll << {
+  collection = files { file('build/signed/').listFiles() }
+  collection.each { 
+    ant.gcupload(username:gcusername, password:gcpassword, projectname:"rsshandler", 
+        filename:it, 
+          targetfilename:it.name, summary:"zzz", labels:"Featured")
+  }
+}
+
 
