@@ -2,12 +2,16 @@ package com.rsshandler;
 
 import javax.swing.*;
 import java.awt.*;
+import java.awt.datatransfer.Clipboard;
+import java.awt.datatransfer.ClipboardOwner;
+import java.awt.datatransfer.StringSelection;
+import java.awt.datatransfer.Transferable;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.net.InetAddress;
 import java.net.UnknownHostException;
 
-public class Gui {
+public class Gui implements ClipboardOwner {
   private PodcastServer server;
   private JButton startButton;
   private JButton stopButton;
@@ -63,10 +67,11 @@ public class Gui {
     final JComboBox formats = new JComboBox(new Object[] {new YoutubeFormat(18, "MP4 (iTunes)"), new YoutubeFormat(17, "Compact PSP"), new YoutubeFormat(FLV, "FLV"), new YoutubeFormat(22, "HD (MP4)")});
 
     JButton copyButton = new JButton("Copy to buffer");
-//TODO implement
     copyButton.addActionListener(new ActionListener() {
       public void actionPerformed(ActionEvent e) {
-
+        StringSelection stringSelection = new StringSelection( result.getText() );
+        Clipboard clipboard = Toolkit.getDefaultToolkit().getSystemClipboard();
+        clipboard.setContents(stringSelection, Gui.this );
       }
     });
     JButton generateButton = new JButton("Generate podcast URL");
@@ -235,6 +240,10 @@ public class Gui {
     public int getId() {
       return id;
     }
+  }
+
+	@Override
+  public void lostOwnership(Clipboard arg0, Transferable arg1) {
   }
 
 }
