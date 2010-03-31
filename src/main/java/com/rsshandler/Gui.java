@@ -1,6 +1,9 @@
 package com.rsshandler;
 
 import javax.swing.*;
+
+import net.miginfocom.swing.MigLayout;
+
 import java.awt.*;
 import java.awt.datatransfer.Clipboard;
 import java.awt.datatransfer.ClipboardOwner;
@@ -87,34 +90,36 @@ public class Gui implements ClipboardOwner {
           result.setText(getUserPodcastUrl(text, format));
         } else if (typePlaylist.isSelected()) {
           result.setText(getPlaylistPodcastUrl(text, format));
+        } else if (typeFavorites.isSelected()) {
+          result.setText(getFavoritesPodcastUrl(text, format));
         } else {
           JOptionPane.showMessageDialog(frame, "Select feed type", "Input error", JOptionPane.ERROR_MESSAGE);
         }
       }
     });
 
-    JPanel infoPanel = new JPanel();
-    GroupLayout layout = new GroupLayout(infoPanel);
-    infoPanel.setLayout(layout);
-    layout.setAutoCreateGaps(true);
-    layout.setAutoCreateContainerGaps(true);
-
-    GroupLayout.SequentialGroup hGroup = layout.createSequentialGroup();
-    hGroup.addGroup(layout.createParallelGroup().addComponent(typeLabel).addComponent(formatLabel).addComponent(idLabel).addComponent(resultLabel));
-    hGroup.addGroup(layout.createParallelGroup().addGroup(layout.createSequentialGroup().addComponent(typeUser).addComponent(typePlaylist).addComponent(typeFavorites)).addComponent(formats).addComponent(id).addComponent(result, GroupLayout.DEFAULT_SIZE, 400, GroupLayout.DEFAULT_SIZE));
-    hGroup.addGroup(layout.createParallelGroup().addComponent(typesGap).addComponent(formatsGap).addComponent(generateButton).addComponent(copyButton));
-    layout.setHorizontalGroup(hGroup);
-    GroupLayout.SequentialGroup vGroup = layout.createSequentialGroup();
-    vGroup.addGroup(layout.createParallelGroup(GroupLayout.Alignment.BASELINE).addComponent(typeLabel).addGroup(layout.createParallelGroup().addComponent(typeUser).addComponent(typePlaylist).addComponent(typeFavorites)).addComponent(typesGap));
-    vGroup.addGroup(layout.createParallelGroup(GroupLayout.Alignment.BASELINE).addComponent(formatLabel).addComponent(formats).addComponent(formatsGap));
-    vGroup.addGroup(layout.createParallelGroup(GroupLayout.Alignment.BASELINE).addComponent(idLabel).addComponent(id).addComponent(generateButton));
-    vGroup.addGroup(layout.createParallelGroup(GroupLayout.Alignment.BASELINE).addComponent(resultLabel).addComponent(result, GroupLayout.DEFAULT_SIZE, 200, GroupLayout.DEFAULT_SIZE).addComponent(copyButton));
-    layout.setVerticalGroup(vGroup);
+		JPanel infoPanel = new JPanel(new MigLayout("", "[][grow][]", "[][][][grow]"));
+		infoPanel.add(typeLabel, "");
+		infoPanel.add(typeUser, "split 3");
+		infoPanel.add(typePlaylist, "");
+		infoPanel.add(typeFavorites, "wrap");
+		infoPanel.add(formatLabel, "");
+		infoPanel.add(formats, "wrap");
+		infoPanel.add(idLabel, "");
+		infoPanel.add(id, "growx, width 30::");
+		infoPanel.add(generateButton, "wrap");
+		infoPanel.add(resultLabel, "top");
+		infoPanel.add(result, "grow, width 30:300:, height 10:100:");
+		infoPanel.add(copyButton, "top");
     return infoPanel;
   }
 
   private String getPlaylistPodcastUrl(String text, int format) {
     return getPodcastUrl("playlist", text, format);
+  }
+
+  private String getFavoritesPodcastUrl(String text, int format) {
+    return getPodcastUrl("favorite", text, format);
   }
 
   private String getUserPodcastUrl(String text, int format) {
