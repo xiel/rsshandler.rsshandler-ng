@@ -14,7 +14,7 @@
   <update check="always" policy="always" />
   <resources>
     <j2se version="1.6+"/>
-    <jar href="rsshandler-1.0.jar" main="true" />
+    <jar href="rsshandler-2.0.jar" main="true" />
     <jar href="jetty-continuation-7.0.1.v20091125.jar"/>
     <jar href="jetty-http-7.0.1.v20091125.jar"/>
     <jar href="jetty-io-7.0.1.v20091125.jar"/>
@@ -23,6 +23,7 @@
     <jar href="jetty-servlet-7.0.1.v20091125.jar"/>
     <jar href="jetty-util-7.0.1.v20091125.jar"/>
     <jar href="servlet-api-2.5.jar"/>
+    <jar href="miglayout-3.7.2.jar"/>
   </resources>
   <application-desc/>
 </jnlp>

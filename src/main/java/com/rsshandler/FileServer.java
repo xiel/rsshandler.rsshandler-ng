@@ -18,7 +18,7 @@ public class FileServer {
         resource_handler.setDirectoriesListed(true);
         resource_handler.setWelcomeFiles(new String[]{ "index.html" });
 
-        resource_handler.setResourceBase("build/signed/.");
+        resource_handler.setResourceBase("build/local/.");
 
         HandlerList handlers = new HandlerList();
         handlers.setHandlers(new Handler[] { resource_handler, new DefaultHandler() });

@@ -4,7 +4,7 @@ sourceCompatibility = 1.6
 
 archivesBaseName = 'rsshandler'
 
-version = '1.0'
+version = '2.0'
 
 manifest.mainAttributes(
     'Main-Class': 'com.rsshandler.Main',
@@ -28,35 +28,53 @@ ant {
   taskdef( name: 'gcupload', classname: 'net.bluecow.googlecode.ant.GoogleCodeUploadTask', classpath: 'ant/ant-googlecode-0.0.2.jar' )
 }
 
-jar.doLast {
-  ant.signjar(destDir: 'build/signed', jar: tasks.jar.archivePath, alias:"myself", keystore:"myKeystore",
-          storepass:"123456", preservelastmodified:"true")
-  ant.copy(file:'rsshandler.jnlp', todir:'build/signed')
+task uploadLocalAll(dependsOn: 'jar') << {
+  createLocalDeployment('build/local/')
 }
 
-task copyAndSign << {
-    ant.delete(dir:'build/signed')
-    ant.mkdir(dir:'build/signed')
-    for(file in configurations.runtime.resolve()) {
-      ant.signjar(destDir: 'build/signed', jar: file, alias:"myself", keystore:"myKeystore",
-              storepass:"123456", preservelastmodified:"true")
-    }
+task uploadLocalJar(dependsOn: 'jar') << {
+  createLocalJar('build/local')
 }
 
-task uploadJar(dependsOn: 'jar') << {
-  ant.gcupload(username:gcusername, password:gcpassword, projectname:"rsshandler", 
-      filename:'build/signed/rsshandler-1.0.jar', targetfilename:'rsshandler-1.0.jar', summary:"RSS Handler java binary files", labels:"Featured")
-  ant.gcupload(username:gcusername, password:gcpassword, projectname:"rsshandler", 
-      filename:'build/signed/rsshandler.jnlp', targetfilename:'rsshandler.jnlp', summary:"JWS installation script", labels:"Featured")
+void replaceJnlpCodebase(String dir) {
+  File jnlp = new File("$dir/rsshandler-${version}.jnlp")
+  def root = new XmlParser().parse(jnlp)
+  root.@codebase = 'http://localhost:8080/'
+  root.@href = "rsshandler-${version}.jnlp"
+  new XmlNodePrinter(new PrintWriter(jnlp)).print(root)
 }
 
-task uploadAll << {
+task uploadBetaJar(dependsOn: 'jar') << {
+  createLocalJar('build/signed')
+  ant.gcupload(username:gcusername, password:gcpassword, projectname:"rsshandler", filename:'build/signed/rsshandler-${version}.jar', targetfilename:'rsshandler-1.0.jar', summary:"RSS Handler java binary files", labels:"Featured")
+  ant.gcupload(username:gcusername, password:gcpassword, projectname:"rsshandler", filename:'build/signed/rsshandler-${version}.jnlp', targetfilename:'rsshandler-${version}.jnlp', summary:"JWS installation script", labels:"Featured")
+}
+
+task uploadBetaAll << {
+  createLocalDeployment('build/signed/')
   collection = files { file('build/signed/').listFiles() }
   collection.each { 
-    ant.gcupload(username:gcusername, password:gcpassword, projectname:"rsshandler", 
-        filename:it, 
-          targetfilename:it.name, summary:"automatic", labels:"")
+    ant.gcupload(username:gcusername, password:gcpassword, projectname:"rsshandler", filename:it, targetfilename:it.name, summary:"automatic", labels:"")
   }
+}
+
+task release << {
+  ant.gcupload(username:gcusername, password:gcpassword, projectname:"rsshandler", filename:'rsshandler.jnlp', targetfilename:'rsshandler.jnlp', summary:"JWS installation script", labels:"Featured")
+}
+
+void createLocalDeployment(String dir) {
+  ant.delete(dir:dir)
+  ant.mkdir(dir:dir)
+  for(file in configurations.runtime.resolve()) {
+    ant.signjar(destDir: dir, jar: file, alias:"myself", keystore:"myKeystore", storepass:"123456", preservelastmodified:"true")
+  }
+  createLocalJar(dir)
+}
+
+void createLocalJar(String dir) {
+  ant.signjar(destDir: dir, jar: tasks.jar.archivePath, alias:"myself", keystore:"myKeystore", storepass:"123456", preservelastmodified:"true")
+  ant.copy(file:"rsshandler.jnlp", tofile:"$dir/rsshandler-${version}.jnlp")
+  replaceJnlpCodebase(dir)
 }
 
 

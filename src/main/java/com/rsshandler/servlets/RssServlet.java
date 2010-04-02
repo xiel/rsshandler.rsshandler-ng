@@ -67,9 +67,17 @@ public abstract class RssServlet extends HttpServlet {
 //      }
 //      logger.info(link);
       String oldenclosure = String.format("%s</link><author>", link);
-      String newenclosure = String.format("%s</link><enclosure url=\"http://"+host+":"+port+"/video.mp4?format=%s&amp;id=%s\" duration=\"35\" type=\"%s\"/><author>", link, format, link, formattype);
+      String newenclosure = String.format("%s</link><enclosure url=\"http://"+host+":"+port+"/video.mp4?format=%s&amp;id=%s\" length=\"35\" type=\"%s\"/><author>", link, format, link, formattype);
       str = str.replace(oldenclosure, newenclosure);
     }
+//    Pattern pattern2 = Pattern.compile("<title>(.*?)</title>");
+//    Matcher matcher2 = pattern2.matcher(str);
+//    while (matcher2.find()) {
+//      String link = matcher2.group(1);
+//      System.out.println(link);
+//    }    
+    
+//    str = str.replaceAll("<title>(.*?)</title>", "<title>zzzz</title>");
 //    Pattern desc = Pattern.compile("<description>.*?</description>", Pattern.DOTALL);
 //    Matcher descmatcher = desc.matcher(str);
 //    str = descmatcher.replaceAll("<description></description>");
