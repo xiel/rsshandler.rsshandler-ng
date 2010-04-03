@@ -29,16 +29,40 @@ public class Gui implements ClipboardOwner {
     frame = new JFrame("RSS Handler");
     frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
 
-    JMenuBar greenMenuBar = new JMenuBar();
-    greenMenuBar.setOpaque(true);
-
-    frame.setJMenuBar(greenMenuBar);
-
+    frame.setJMenuBar(createMenu());
     frame.getContentPane().add(createStartStopPanel(), BorderLayout.PAGE_START);
     frame.getContentPane().add(createGeneratorPanel(), BorderLayout.CENTER);
 
     frame.pack();
     frame.setVisible(true);
+  }
+
+	private JMenuBar createMenu() {
+	  JMenuBar greenMenuBar = new JMenuBar();
+    greenMenuBar.setOpaque(true);
+
+    JMenu file = new JMenu("File");
+    JMenuItem exit = new JMenuItem("Exit");
+    JMenu help = new JMenu("Help");
+    JMenuItem about = new JMenuItem("About");
+    about.addActionListener(new ActionListener() {
+			@Override
+			public void actionPerformed(ActionEvent arg0) {
+				String version = this.getClass().getPackage().getImplementationVersion();
+				JOptionPane.showMessageDialog(frame, "Version: " + version, "About", JOptionPane.INFORMATION_MESSAGE);
+			}
+		});
+    exit.addActionListener(new ActionListener() {
+			@Override
+			public void actionPerformed(ActionEvent arg0) {
+				System.exit(0);
+			}
+		});
+    file.add(exit);
+    help.add(about);
+    greenMenuBar.add(file);
+    greenMenuBar.add(help);
+	  return greenMenuBar;
   }
 
   private JPanel createGeneratorPanel() {
