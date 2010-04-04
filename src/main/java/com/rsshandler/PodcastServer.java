@@ -5,4 +5,6 @@ public interface PodcastServer {
   boolean stop();
 
   boolean start();
+
+	int getPort();
 }

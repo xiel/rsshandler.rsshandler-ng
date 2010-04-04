@@ -10,22 +10,16 @@ import org.eclipse.jetty.servlet.ServletHolder;
 
 public class PodcastServerImpl implements PodcastServer {
   private Server server;
-  public static int PORT = 8083;
+  private int port;
 
-  public PodcastServerImpl() {
-    server = new Server(PORT);
-    ServletContextHandler context = new ServletContextHandler(ServletContextHandler.SESSIONS);
-    context.setContextPath("/");
-    server.setHandler(context);
-    context.addServlet(new ServletHolder(new UserServlet()),"/user.rss");
-    context.addServlet(new ServletHolder(new PlaylistServlet()),"/playlist");
-    context.addServlet(new ServletHolder(new FavoriteServlet()),"/favorite");
-    context.addServlet(new ServletHolder(new VideoServlet()),"/video.mp4");
+  public PodcastServerImpl(int port) {
+  	this.setPort(port);
   }
 
   public boolean stop() {
     try {
       server.stop();
+      server.destroy();
       return true;
     } catch (Exception e) {
       e.printStackTrace();
@@ -35,6 +29,14 @@ public class PodcastServerImpl implements PodcastServer {
 
   public boolean start() {
     try {
+      server = new Server(getPort());
+      ServletContextHandler context = new ServletContextHandler(ServletContextHandler.SESSIONS);
+      context.setContextPath("/");
+      server.setHandler(context);
+      context.addServlet(new ServletHolder(new UserServlet()),"/user.rss");
+      context.addServlet(new ServletHolder(new PlaylistServlet()),"/playlist");
+      context.addServlet(new ServletHolder(new FavoriteServlet()),"/favorite");
+      context.addServlet(new ServletHolder(new VideoServlet()),"/video.mp4");
       server.start();
       server.join();
       return true;
@@ -44,8 +46,20 @@ public class PodcastServerImpl implements PodcastServer {
     }
   }
   
-  public static void main(String args[]) {
-	  PodcastServerImpl server = new PodcastServerImpl();
+	public void setPort(int port) {
+	  this.port = port;
+  }
+
+	public int getPort() {
+	  return port;
+  }
+
+	public static void main(String args[]) {
+  	int port = 8083;
+  	if (args.length > 1) {
+  		port = Integer.parseInt(args[1]);
+  	}
+	  PodcastServerImpl server = new PodcastServerImpl(port);
 	  server.start();
   }
 }

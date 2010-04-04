@@ -152,7 +152,7 @@ public class Gui implements ClipboardOwner {
 
   private String getPodcastUrl(String type, String text, int format) {
     String hostname = getHostName();
-    return "http://"+ getHostName() +":"+PodcastServerImpl.PORT+"/"+type+"?id="+text+"&format="+format+"&host="+hostname+"&port="+PodcastServerImpl.PORT;
+    return "http://"+ getHostName() +":"+server.getPort()+"/"+type+"?id="+text+"&format="+format+"&host="+hostname+"&port="+server.getPort();
   }
 
   private String getHostName() {
