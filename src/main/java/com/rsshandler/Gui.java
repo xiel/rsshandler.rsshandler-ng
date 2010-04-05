@@ -32,8 +32,12 @@ public class Gui implements ClipboardOwner {
     frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
 
     frame.setJMenuBar(createMenu());
-    frame.getContentPane().add(createStartStopPanel(), BorderLayout.PAGE_START);
-    frame.getContentPane().add(createGeneratorPanel(), BorderLayout.CENTER);
+    
+    JTabbedPane tabbedPane = new JTabbedPane();
+    tabbedPane.addTab("Podcasts", createGeneratorPanel());
+    tabbedPane.addTab("Server", createStartStopPanel());
+    
+    frame.getContentPane().add(tabbedPane, BorderLayout.CENTER);
 
     frame.pack();
     frame.setVisible(true);
@@ -167,9 +171,7 @@ public class Gui implements ClipboardOwner {
   }
 
   private JPanel createStartStopPanel() {
-    JLabel serverLabel = new JLabel("Podcast server");
-
-    proxyMode = new JCheckBox("Proxy mode");
+    proxyMode = new JCheckBox();
     proxyMode.setSelected(server.isProxyMode());
     
     port = new JTextField(5);
@@ -197,13 +199,14 @@ public class Gui implements ClipboardOwner {
       }
     });
     
-		JPanel serverPanel = new JPanel(new MigLayout("", "[][][][grow][][][]", "[grow]"));
-		serverPanel.add(serverLabel, "");
+		JPanel serverPanel = new JPanel(new MigLayout("", "[][][]", "[][][][grow]"));
+		serverPanel.add(new JLabel("Podcast server"), "");
 		serverPanel.add(startButton, "");
-		serverPanel.add(stopButton, "");
-		serverPanel.add(new JLabel("Port"), "right");
-		serverPanel.add(port, "");
-		serverPanel.add(proxyMode, "");
+		serverPanel.add(stopButton, "wrap");
+		serverPanel.add(new JLabel("Port"), "");
+		serverPanel.add(port, "wrap");
+		serverPanel.add(new JLabel("Proxy mode"), "");
+		serverPanel.add(proxyMode, "wrap");
 		serverPanel.add(updatePortButton, "");
     
     return serverPanel;

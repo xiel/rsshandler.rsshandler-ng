@@ -51,10 +51,11 @@ public class VideoServlet extends HttpServlet {
     String str = Utils.readString(connection.getInputStream());
     logger.info(String.format("Headers: %s", connection.getHeaderFields()));
     String redirect = getVideoLink2(str);
-    logger.info(String.format("Redirect: %s", redirect));
     if (proxy) {
+      logger.info(String.format("Proxy: %s", redirect));
     	proxyVideo(redirect, response);
     } else {
+      logger.info(String.format("Redirect: %s", redirect));
     	response.sendRedirect(redirect);
     }
   }
@@ -66,9 +67,12 @@ public class VideoServlet extends HttpServlet {
 		OutputStream os = response.getOutputStream();
     byte arr[] = new byte[4096];
     int len = -1;
+    int total = 0;
     while ((len = is.read(arr)) != -1) {
       os.write(arr, 0, len);
+      total += len;
     }
+    logger.info(String.format("Sent: %s bytes", total));
   }
 
   private String getVideoLink2(String content) throws UnsupportedEncodingException {
