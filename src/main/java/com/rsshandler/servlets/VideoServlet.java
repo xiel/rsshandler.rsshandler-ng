@@ -4,7 +4,14 @@ import javax.servlet.ServletException;
 import javax.servlet.http.HttpServlet;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
+
+import java.io.BufferedReader;
+import java.io.CharArrayWriter;
 import java.io.IOException;
+import java.io.InputStream;
+import java.io.InputStreamReader;
+import java.io.OutputStream;
+import java.io.Reader;
 import java.io.UnsupportedEncodingException;
 import java.net.CookieHandler;
 import java.net.CookieManager;
@@ -21,6 +28,11 @@ import java.util.regex.Pattern;
 
 public class VideoServlet extends HttpServlet {
 	Logger logger = Logger.getLogger(this.getClass().getName());
+	private boolean proxy;
+	
+	public VideoServlet(boolean proxy) {
+		this.proxy = proxy;
+	}
 
   protected void doGet(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
   	CookieManager cookieManager = new CookieManager();
@@ -40,7 +52,23 @@ public class VideoServlet extends HttpServlet {
     logger.info(String.format("Headers: %s", connection.getHeaderFields()));
     String redirect = getVideoLink2(str);
     logger.info(String.format("Redirect: %s", redirect));
-    response.sendRedirect(redirect);
+    if (proxy) {
+    	proxyVideo(redirect, response);
+    } else {
+    	response.sendRedirect(redirect);
+    }
+  }
+  
+  private void proxyVideo(String redirect, HttpServletResponse response) throws IOException {
+		URL url = new URL(redirect);
+		URLConnection connection = url.openConnection();
+		InputStream is = connection.getInputStream();
+		OutputStream os = response.getOutputStream();
+    byte arr[] = new byte[4096];
+    int len = -1;
+    while ((len = is.read(arr)) != -1) {
+      os.write(arr, 0, len);
+    }
   }
 
   private String getVideoLink2(String content) throws UnsupportedEncodingException {

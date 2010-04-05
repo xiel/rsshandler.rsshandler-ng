@@ -9,4 +9,8 @@ public interface PodcastServer {
 	int getPort();
 
 	void setPort(int parseInt);
+
+	boolean isProxyMode();
+
+	void setProxyMode(boolean selected);
 }

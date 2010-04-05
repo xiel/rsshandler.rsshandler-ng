@@ -21,6 +21,7 @@ public class Gui implements ClipboardOwner {
   private JFrame frame;
   public static final int FLV = 35;
 	private JTextField port;
+	private JCheckBox proxyMode;
 
   public void setServer(PodcastServer server) {
     this.server = server;
@@ -168,10 +169,13 @@ public class Gui implements ClipboardOwner {
   private JPanel createStartStopPanel() {
     JLabel serverLabel = new JLabel("Podcast server");
 
+    proxyMode = new JCheckBox("Proxy mode");
+    proxyMode.setSelected(server.isProxyMode());
+    
     port = new JTextField(5);
     port.setText(""+server.getPort());
 
-    JButton updatePortButton = new JButton("Update port");
+    JButton updatePortButton = new JButton("Restart with new settings");
     updatePortButton.addActionListener(new ActionListener() {
       public void actionPerformed(ActionEvent e) {
       	stopServer();
@@ -193,12 +197,13 @@ public class Gui implements ClipboardOwner {
       }
     });
     
-		JPanel serverPanel = new JPanel(new MigLayout("", "[][][][grow][][]", "[grow]"));
+		JPanel serverPanel = new JPanel(new MigLayout("", "[][][][grow][][][]", "[grow]"));
 		serverPanel.add(serverLabel, "");
 		serverPanel.add(startButton, "");
 		serverPanel.add(stopButton, "");
-		serverPanel.add(new JLabel("Port"), "");
+		serverPanel.add(new JLabel("Port"), "right");
 		serverPanel.add(port, "");
+		serverPanel.add(proxyMode, "");
 		serverPanel.add(updatePortButton, "");
     
     return serverPanel;
@@ -225,6 +230,7 @@ public class Gui implements ClipboardOwner {
     new Thread(new Runnable() {
       public void run() {
       	server.setPort(Integer.parseInt(port.getText()));
+      	server.setProxyMode(proxyMode.isSelected());
       	boolean result = server.start();
         if (!result) {
           JOptionPane.showMessageDialog(frame, "Cann't start server, for error message - check logs", "Server error", JOptionPane.ERROR_MESSAGE);
@@ -257,6 +263,15 @@ public class Gui implements ClipboardOwner {
 			@Override
       public boolean stop() {
 	      return false;
+      }
+
+			@Override
+      public boolean isProxyMode() {
+	      return false;
+      }
+
+			@Override
+      public void setProxyMode(boolean selected) {
       }
   	};
     Gui gui = new Gui();

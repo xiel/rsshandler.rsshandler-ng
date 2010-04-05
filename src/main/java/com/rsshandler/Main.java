@@ -3,7 +3,7 @@ package com.rsshandler;
 public class Main {
 
   public static void main(String[] args) throws Exception {
-    PodcastServer server = new PodcastServerImpl(8083);
+    PodcastServer server = new PodcastServerImpl(8083, false);
     Gui gui = new Gui();
     gui.setServer(server);
     gui.createGui();

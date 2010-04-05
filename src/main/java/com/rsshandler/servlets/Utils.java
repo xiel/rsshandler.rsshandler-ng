@@ -10,14 +10,13 @@ import java.io.Reader;
 public class Utils {
 	  
 	public static String readString(InputStream is) throws IOException {
-		    Reader reader = new BufferedReader(new InputStreamReader(is));
-		    char arr[] = new char[4096];
-		    int len = -1;
-		    CharArrayWriter writer = new CharArrayWriter();
-		    while ((len = reader.read(arr)) != -1) {
-		      writer.write(arr, 0, len);
-		    }
-		    return writer.toString();
-		  }
-
+    Reader reader = new BufferedReader(new InputStreamReader(is));
+    char arr[] = new char[4096];
+    int len = -1;
+    CharArrayWriter writer = new CharArrayWriter();
+    while ((len = reader.read(arr)) != -1) {
+      writer.write(arr, 0, len);
+    }
+    return writer.toString();
+  }
 }
