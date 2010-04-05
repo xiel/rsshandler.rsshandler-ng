@@ -20,6 +20,7 @@ public class Gui implements ClipboardOwner {
   private JButton stopButton;
   private JFrame frame;
   public static final int FLV = 35;
+	private JTextField port;
 
   public void setServer(PodcastServer server) {
     this.server = server;
@@ -167,6 +168,17 @@ public class Gui implements ClipboardOwner {
   private JPanel createStartStopPanel() {
     JLabel serverLabel = new JLabel("Podcast server");
 
+    port = new JTextField(5);
+    port.setText(""+server.getPort());
+
+    JButton updatePortButton = new JButton("Update port");
+    updatePortButton.addActionListener(new ActionListener() {
+      public void actionPerformed(ActionEvent e) {
+      	stopServer();
+        startServer();
+      }
+    });
+
     startButton = new JButton("Start");
     startButton.addActionListener(new ActionListener() {
       public void actionPerformed(ActionEvent e) {
@@ -180,22 +192,16 @@ public class Gui implements ClipboardOwner {
         stopServer();
       }
     });
-
-    JPanel startStopPanel = new JPanel();
-    GroupLayout layout = new GroupLayout(startStopPanel);
-    startStopPanel.setLayout(layout);
-    layout.setAutoCreateGaps(true);
-    layout.setAutoCreateContainerGaps(true);
-
-    GroupLayout.SequentialGroup hGroup = layout.createSequentialGroup();
-    hGroup.addGroup(layout.createParallelGroup().addComponent(serverLabel));
-    hGroup.addGroup(layout.createParallelGroup().addComponent(startButton));
-    hGroup.addGroup(layout.createParallelGroup().addComponent(stopButton));
-    layout.setHorizontalGroup(hGroup);
-    GroupLayout.SequentialGroup vGroup = layout.createSequentialGroup();
-    vGroup.addGroup(layout.createParallelGroup(GroupLayout.Alignment.BASELINE).addComponent(serverLabel).addComponent(startButton).addComponent(stopButton));
-    layout.setVerticalGroup(vGroup);
-    return startStopPanel;
+    
+		JPanel serverPanel = new JPanel(new MigLayout("", "[][][][grow][][]", "[grow]"));
+		serverPanel.add(serverLabel, "");
+		serverPanel.add(startButton, "");
+		serverPanel.add(stopButton, "");
+		serverPanel.add(new JLabel("Port"), "");
+		serverPanel.add(port, "");
+		serverPanel.add(updatePortButton, "");
+    
+    return serverPanel;
   }
 
   private void stopServer() {
@@ -218,7 +224,8 @@ public class Gui implements ClipboardOwner {
     stopButton.setEnabled(true);
     new Thread(new Runnable() {
       public void run() {
-        boolean result = server.start();
+      	server.setPort(Integer.parseInt(port.getText()));
+      	boolean result = server.start();
         if (!result) {
           JOptionPane.showMessageDialog(frame, "Cann't start server, for error message - check logs", "Server error", JOptionPane.ERROR_MESSAGE);
           startButton.setEnabled(true);
@@ -231,7 +238,29 @@ public class Gui implements ClipboardOwner {
 
 
   public static void main(String[] args) {
+  	PodcastServer server = new PodcastServer() {
+			@Override
+      public int getPort() {
+	      return 0;
+      }
+
+			@Override
+      public void setPort(int parseInt) {
+
+			}
+
+			@Override
+      public boolean start() {
+	      return false;
+      }
+
+			@Override
+      public boolean stop() {
+	      return false;
+      }
+  	};
     Gui gui = new Gui();
+    gui.setServer(server);
     gui.createGui();
   }
 

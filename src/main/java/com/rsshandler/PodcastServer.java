@@ -7,4 +7,6 @@ public interface PodcastServer {
   boolean start();
 
 	int getPort();
+
+	void setPort(int parseInt);
 }
