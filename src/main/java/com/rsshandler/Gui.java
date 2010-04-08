@@ -68,8 +68,7 @@ public class Gui implements ClipboardOwner {
       @Override
       public void actionPerformed(ActionEvent arg0) {
         JDialog settings = new JDialog(frame, "Settings", true);
-        settings
-            .setContentPane(createStartStopPanel(settings, port, proxyMode));
+        settings.setContentPane(createStartStopPanel(settings, port, proxyMode));
         settings.pack();
         settings.setLocationRelativeTo(frame);
         settings.setVisible(true);
@@ -82,10 +81,8 @@ public class Gui implements ClipboardOwner {
 
       @Override
       public void actionPerformed(ActionEvent arg0) {
-        String version = this.getClass().getPackage()
-            .getImplementationVersion();
-        JOptionPane.showMessageDialog(frame, "Version: " + version, "About",
-            JOptionPane.INFORMATION_MESSAGE);
+        String version = this.getClass().getPackage().getImplementationVersion();
+        JOptionPane.showMessageDialog(frame, "Version: " + version, "About", JOptionPane.INFORMATION_MESSAGE);
       }
     });
 
@@ -109,8 +106,7 @@ public class Gui implements ClipboardOwner {
   }
 
   private JPanel createGeneratorPanel() {
-    JPanel infoPanel = new JPanel(new MigLayout("", "[][grow][]",
-        "[][][][][grow]"));
+    JPanel infoPanel = new JPanel(new MigLayout("", "[][grow][]", "[][][][][grow]"));
     JLabel typeLabel = new JLabel("");
     JLabel formatLabel = new JLabel("Format");
     final JLabel idLabel = new JLabel("ID");
@@ -148,15 +144,9 @@ public class Gui implements ClipboardOwner {
     // "Top favorites"),
     // });
 
-    final JComboBox standardFeeds = new JComboBox(new Object[] {
-        new StandardFeed("recently_featured", "Recently featured"),
-        new StandardFeed("most_viewed", "Most viewed"),
-        new StandardFeed("most_popular", "Most popular"),
-        new StandardFeed("most_recent", "Most recent"),
-        new StandardFeed("most_discussed", "Most discussed"),
-        new StandardFeed("most_linked", "Most linked"),
-        new StandardFeed("most_responded", "Most responded"),
-        new StandardFeed("top_rated", "Top rated"),
+    final JComboBox standardFeeds = new JComboBox(new Object[] { new StandardFeed("recently_featured", "Recently featured"), new StandardFeed("most_viewed", "Most viewed"),
+        new StandardFeed("most_popular", "Most popular"), new StandardFeed("most_recent", "Most recent"), new StandardFeed("most_discussed", "Most discussed"),
+        new StandardFeed("most_linked", "Most linked"), new StandardFeed("most_responded", "Most responded"), new StandardFeed("top_rated", "Top rated"),
         new StandardFeed("top_favorites", "Top favorites"), });
 
     standardFeeds.setVisible(false);
@@ -178,11 +168,9 @@ public class Gui implements ClipboardOwner {
     size25.setSelected(true);
 
     final JTextField id = new JTextField();
-    id
-        .setToolTipText("Name that identifies feed with given type: for user and favorites feeds - user name, for playlists - playlist id");
+    id.setToolTipText("Name that identifies feed with given type: for user and favorites feeds - user name, for playlists - playlist id");
     final JTextArea result = new JTextArea();
-    result
-        .setToolTipText("Copy paste this text to your podcast player as podcast link");
+    result.setToolTipText("Copy paste this text to your podcast player as podcast link");
     result.setLineWrap(true);
     typeStandart.addItemListener(new ItemListener() {
       public void itemStateChanged(ItemEvent e) {
@@ -206,9 +194,7 @@ public class Gui implements ClipboardOwner {
      * @ FLV;
      */
 
-    final JComboBox formats = new JComboBox(new Object[] {
-        new YoutubeFormat(18, "MP4 (iTunes)"),
-        new YoutubeFormat(17, "Compact PSP"), new YoutubeFormat(FLV, "FLV"),
+    final JComboBox formats = new JComboBox(new Object[] { new YoutubeFormat(18, "MP4 (iTunes)"), new YoutubeFormat(17, "Compact PSP"), new YoutubeFormat(FLV, "FLV"),
         new YoutubeFormat(22, "HD (MP4)") });
     JButton copyButton = new JButton("Copy to buffer");
     copyButton.addActionListener(new ActionListener() {
@@ -223,8 +209,7 @@ public class Gui implements ClipboardOwner {
       public void actionPerformed(ActionEvent e) {
         String text = id.getText();
         if ((text.length() == 0) && !typeStandart.isSelected()) {
-          JOptionPane.showMessageDialog(frame, "You must enter id",
-              "Input error", JOptionPane.ERROR_MESSAGE);
+          JOptionPane.showMessageDialog(frame, "You must enter id", "Input error", JOptionPane.ERROR_MESSAGE);
           return;
         }
         int size = -1;
@@ -233,8 +218,7 @@ public class Gui implements ClipboardOwner {
         } else if (size50.isSelected()) {
           size = 50;
         } else {
-          JOptionPane.showMessageDialog(frame, "Select feed size",
-              "Input error", JOptionPane.ERROR_MESSAGE);
+          JOptionPane.showMessageDialog(frame, "Select feed size", "Input error", JOptionPane.ERROR_MESSAGE);
         }
         int format = ((YoutubeFormat) formats.getSelectedItem()).getId();
         if (typeUser.isSelected()) {
@@ -247,8 +231,7 @@ public class Gui implements ClipboardOwner {
           StandardFeed feed = (StandardFeed) standardFeeds.getSelectedItem();
           result.setText(getStandardUrl(feed, format, size));
         } else {
-          JOptionPane.showMessageDialog(frame, "Select feed type",
-              "Input error", JOptionPane.ERROR_MESSAGE);
+          JOptionPane.showMessageDialog(frame, "Select feed type", "Input error", JOptionPane.ERROR_MESSAGE);
         }
       }
     });
@@ -291,27 +274,21 @@ public class Gui implements ClipboardOwner {
 
   private String getPodcastUrl(String type, String text, int format, int size) {
     String hostname = getHostName();
-    return "http://" + getHostName() + ":" + port + "/" + type + "?id=" + text
-        + "&format=" + format + "&host=" + hostname + "&port=" + port
-        + "&size=" + size;
+    return "http://" + getHostName() + ":" + port + "/" + type + "?id=" + text + "&format=" + format + "&host=" + hostname + "&port=" + port + "&size=" + size;
   }
 
   private String getHostName() {
     try {
       return InetAddress.getLocalHost().getHostName();
     } catch (UnknownHostException e) {
-      JOptionPane.showMessageDialog(frame,
-          "Cann't detect IP address, please change it manually", "Error",
-          JOptionPane.ERROR_MESSAGE);
+      JOptionPane.showMessageDialog(frame, "Cann't detect IP address, please change it manually", "Error", JOptionPane.ERROR_MESSAGE);
       return "<INSERT YOUR IP ADDRESS>";
     }
   }
 
-  private JPanel createStartStopPanel(final JDialog settings, int portValue,
-      boolean proxyModeValue) {
+  private JPanel createStartStopPanel(final JDialog settings, int portValue, boolean proxyModeValue) {
     final JCheckBox proxyMode = new JCheckBox();
-    proxyMode
-        .setToolTipText("Check this to proxy all videos through program, otherwise users will be redirected to result video directly from YouTube");
+    proxyMode.setToolTipText("Check this to proxy all videos through program, otherwise users will be redirected to result video directly from YouTube");
     proxyMode.setSelected(proxyModeValue);
     final JTextField port = new JTextField(5);
     port.setToolTipText("Server port number for podcast server");
@@ -327,9 +304,7 @@ public class Gui implements ClipboardOwner {
         if ((port > 0) && (port < 65535)) {
           return true;
         } else {
-          JOptionPane.showMessageDialog(settings,
-              "Port must be number between 0 and 65535", "Input error",
-              JOptionPane.ERROR_MESSAGE);
+          JOptionPane.showMessageDialog(settings, "Port must be number between 0 and 65535", "Input error", JOptionPane.ERROR_MESSAGE);
           return false;
         }
       }
@@ -354,8 +329,7 @@ public class Gui implements ClipboardOwner {
       }
     });
 
-    JPanel serverPanel = new JPanel(new MigLayout("", "[grow][grow]",
-        "[][][grow]"));
+    JPanel serverPanel = new JPanel(new MigLayout("", "[grow][grow]", "[][][grow]"));
     serverPanel.add(new JLabel("Port"), "w 50%");
     serverPanel.add(port, "w 50%, wrap");
     serverPanel.add(new JLabel("Proxy mode"), "");
@@ -379,9 +353,7 @@ public class Gui implements ClipboardOwner {
       stopServer.setEnabled(false);
       startServer.setEnabled(true);
     } else {
-      JOptionPane.showMessageDialog(frame,
-          "Cann't stop server, for error message - check logs", "Server error",
-          JOptionPane.ERROR_MESSAGE);
+      JOptionPane.showMessageDialog(frame, "Cann't stop server, for error message - check logs", "Server error", JOptionPane.ERROR_MESSAGE);
     }
     updateStats();
   }
@@ -398,9 +370,7 @@ public class Gui implements ClipboardOwner {
         server.setProxyMode(proxyMode);
         boolean result = server.start();
         if (!result) {
-          JOptionPane.showMessageDialog(frame,
-              "Cann't start server, for error message - check logs",
-              "Server error", JOptionPane.ERROR_MESSAGE);
+          JOptionPane.showMessageDialog(frame, "Cann't start server, for error message - check logs", "Server error", JOptionPane.ERROR_MESSAGE);
           startServer.setEnabled(true);
           stopServer.setEnabled(false);
         }
@@ -447,6 +417,7 @@ public class Gui implements ClipboardOwner {
   private class YoutubeFormat {
     private int id;
     private String name;
+
     public YoutubeFormat(int id, String name) {
       this.id = id;
       this.name = name;
@@ -486,6 +457,7 @@ public class Gui implements ClipboardOwner {
   private class StandardFeed {
     private String id;
     private String name;
+
     public StandardFeed(String id, String name) {
       this.id = id;
       this.name = name;
