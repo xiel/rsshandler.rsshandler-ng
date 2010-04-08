@@ -1,9 +1,7 @@
 package com.rsshandler;
 
-import javax.swing.*;
-
 import net.miginfocom.swing.MigLayout;
-
+import javax.swing.*;
 import java.awt.*;
 import java.awt.datatransfer.Clipboard;
 import java.awt.datatransfer.ClipboardOwner;
@@ -11,17 +9,22 @@ import java.awt.datatransfer.StringSelection;
 import java.awt.datatransfer.Transferable;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
+import java.awt.event.ItemListener;
+import java.awt.event.ItemEvent;
 import java.net.InetAddress;
 import java.net.UnknownHostException;
+import java.util.prefs.Preferences;
 
 public class Gui implements ClipboardOwner {
   private PodcastServer server;
-  private JButton startButton;
-  private JButton stopButton;
+  private JMenuItem startServer;
+  private JMenuItem stopServer;
   private JFrame frame;
   public static final int FLV = 35;
-	private JTextField port;
-	private JCheckBox proxyMode;
+  private int port = -1;
+  private boolean proxyMode = false;
+  private static final String PROXY_MODE_PREF = "proxyMode";
+  private static final String PORT_PREF = "port";
 
   public void setServer(PodcastServer server) {
     this.server = server;
@@ -30,253 +33,412 @@ public class Gui implements ClipboardOwner {
   public void createGui() {
     frame = new JFrame("RSS Handler");
     frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
-
     frame.setJMenuBar(createMenu());
-    
-    JTabbedPane tabbedPane = new JTabbedPane();
-    tabbedPane.addTab("Podcasts", createGeneratorPanel());
-    tabbedPane.addTab("Server", createStartStopPanel());
-    
-    frame.getContentPane().add(tabbedPane, BorderLayout.CENTER);
-
+    frame.getContentPane().add(createGeneratorPanel(), BorderLayout.CENTER);
     frame.pack();
+    Preferences prefs = Preferences.userNodeForPackage(this.getClass());
+    proxyMode = prefs.getBoolean(PROXY_MODE_PREF, false);
+    port = prefs.getInt(PORT_PREF, 8083);
+    frame.setLocationByPlatform(true);
     frame.setVisible(true);
+    startServer();
   }
 
-	private JMenuBar createMenu() {
-	  JMenuBar greenMenuBar = new JMenuBar();
+  private JMenuBar createMenu() {
+    JMenuBar greenMenuBar = new JMenuBar();
     greenMenuBar.setOpaque(true);
-
     JMenu file = new JMenu("File");
     JMenuItem exit = new JMenuItem("Exit");
+    startServer = new JMenuItem("Start server");
+    stopServer = new JMenuItem("Stop server");
+    startServer.addActionListener(new ActionListener() {
+      public void actionPerformed(ActionEvent e) {
+        startServer();
+      }
+    });
+    stopServer.setEnabled(false);
+    stopServer.addActionListener(new ActionListener() {
+      public void actionPerformed(ActionEvent e) {
+        stopServer();
+      }
+    });
+
+    JMenuItem settingsMenu = new JMenuItem("Settings...");
+    settingsMenu.addActionListener(new ActionListener() {
+      @Override
+      public void actionPerformed(ActionEvent arg0) {
+        JDialog settings = new JDialog(frame, "Settings", true);
+        settings
+            .setContentPane(createStartStopPanel(settings, port, proxyMode));
+        settings.pack();
+        settings.setLocationRelativeTo(frame);
+        settings.setVisible(true);
+      }
+    });
+
     JMenu help = new JMenu("Help");
     JMenuItem about = new JMenuItem("About");
     about.addActionListener(new ActionListener() {
-			@Override
-			public void actionPerformed(ActionEvent arg0) {
-				String version = this.getClass().getPackage().getImplementationVersion();
-				JOptionPane.showMessageDialog(frame, "Version: " + version, "About", JOptionPane.INFORMATION_MESSAGE);
-			}
-		});
+
+      @Override
+      public void actionPerformed(ActionEvent arg0) {
+        String version = this.getClass().getPackage()
+            .getImplementationVersion();
+        JOptionPane.showMessageDialog(frame, "Version: " + version, "About",
+            JOptionPane.INFORMATION_MESSAGE);
+      }
+    });
+
     exit.addActionListener(new ActionListener() {
-			@Override
-			public void actionPerformed(ActionEvent arg0) {
-				System.exit(0);
-			}
-		});
+      @Override
+      public void actionPerformed(ActionEvent arg0) {
+        System.exit(0);
+      }
+    });
+
+    file.add(settingsMenu);
+    file.addSeparator();
+    file.add(startServer);
+    file.add(stopServer);
+    file.addSeparator();
     file.add(exit);
     help.add(about);
     greenMenuBar.add(file);
     greenMenuBar.add(help);
-	  return greenMenuBar;
+    return greenMenuBar;
   }
 
   private JPanel createGeneratorPanel() {
+    JPanel infoPanel = new JPanel(new MigLayout("", "[][grow][]",
+        "[][][][][grow]"));
     JLabel typeLabel = new JLabel("");
     JLabel formatLabel = new JLabel("Format");
-    JLabel idLabel = new JLabel("ID");
+    final JLabel idLabel = new JLabel("ID");
+    final JLabel standardFeedLabel = new JLabel("Feed type");
+    standardFeedLabel.setVisible(false);
+    JLabel sizeLabel = new JLabel("Size");
     JLabel resultLabel = new JLabel("Result podcast URL");
 
+    // final JComboBox standardFeeds = new JComboBox(new Object[] {new
+    // StandardFeed("http://gdata.youtube.com/feeds/api/standardfeeds/recently_featured?v=2&alt=rss",
+    // "Recently featured"),
+    // new
+    // StandardFeed("http://gdata.youtube.com/feeds/api/standardfeeds/most_viewed?v=2&alt=rss",
+    // "Most viewed"),
+    // new
+    // StandardFeed("http://gdata.youtube.com/feeds/api/standardfeeds/most_popular?v=2&alt=rss",
+    // "Most popular"),
+    // new
+    // StandardFeed("http://gdata.youtube.com/feeds/api/standardfeeds/most_recent?v=2&alt=rss",
+    // "Most recent"),
+    // new
+    // StandardFeed("http://gdata.youtube.com/feeds/api/standardfeeds/most_discussed?v=2&alt=rss",
+    // "Most discussed"),
+    // new
+    // StandardFeed("http://gdata.youtube.com/feeds/api/standardfeeds/most_linked?v=2&alt=rss",
+    // "Most linked"),
+    // new
+    // StandardFeed("http://gdata.youtube.com/feeds/api/standardfeeds/most_responded?v=2&alt=rss",
+    // "Most responded"),
+    // new
+    // StandardFeed("http://gdata.youtube.com/feeds/api/standardfeeds/top_rated?v=2&alt=rss",
+    // "Top rated"),
+    // new
+    // StandardFeed("http://gdata.youtube.com/feeds/api/standardfeeds/top_favorites?v=2&alt=rss",
+    // "Top favorites"),
+    // });
+
+    final JComboBox standardFeeds = new JComboBox(new Object[] {
+        new StandardFeed("recently_featured", "Recently featured"),
+        new StandardFeed("most_viewed", "Most viewed"),
+        new StandardFeed("most_popular", "Most popular"),
+        new StandardFeed("most_recent", "Most recent"),
+        new StandardFeed("most_discussed", "Most discussed"),
+        new StandardFeed("most_linked", "Most linked"),
+        new StandardFeed("most_responded", "Most responded"),
+        new StandardFeed("top_rated", "Top rated"),
+        new StandardFeed("top_favorites", "Top favorites"), });
+
+    standardFeeds.setVisible(false);
     ButtonGroup types = new ButtonGroup();
     final JRadioButton typeUser = new JRadioButton("User");
     final JRadioButton typePlaylist = new JRadioButton("Playlist");
     final JRadioButton typeFavorites = new JRadioButton("Favorites");
+    final JRadioButton typeStandart = new JRadioButton("Standart");
     types.add(typeUser);
     types.add(typePlaylist);
     types.add(typeFavorites);
-    JLabel typesGap = new JLabel("");
+    types.add(typeStandart);
     typeUser.setSelected(true);
-    JLabel formatsGap = new JLabel("");
+    ButtonGroup sizes = new ButtonGroup();
+    final JRadioButton size25 = new JRadioButton("25 items");
+    final JRadioButton size50 = new JRadioButton("50 items");
+    sizes.add(size25);
+    sizes.add(size50);
+    size25.setSelected(true);
 
     final JTextField id = new JTextField();
+    id
+        .setToolTipText("Name that identifies feed with given type: for user and favorites feeds - user name, for playlists - playlist id");
     final JTextArea result = new JTextArea();
+    result
+        .setToolTipText("Copy paste this text to your podcast player as podcast link");
     result.setLineWrap(true);
-/*
-    6 = 320x180 @ FLV;
-    18 = 480x270 @ MP4;
-    22 = 1280x720 @ MP4;
-    35 = 640x360 @ FLV;
-*/
-    final JComboBox formats = new JComboBox(new Object[] {new YoutubeFormat(18, "MP4 (iTunes)"), new YoutubeFormat(17, "Compact PSP"), new YoutubeFormat(FLV, "FLV"), new YoutubeFormat(22, "HD (MP4)")});
+    typeStandart.addItemListener(new ItemListener() {
+      public void itemStateChanged(ItemEvent e) {
+        if (e.getStateChange() == ItemEvent.SELECTED) {
+          standardFeedLabel.setVisible(true);
+          standardFeeds.setVisible(true);
+          idLabel.setVisible(false);
+          id.setVisible(false);
+        } else if (e.getStateChange() == ItemEvent.DESELECTED) {
+          standardFeedLabel.setVisible(false);
+          standardFeeds.setVisible(false);
+          idLabel.setVisible(true);
+          id.setVisible(true);
+        }
+      }
+    });
 
+    /*
+     * 6 = 320x180 @ FLV; 18 = 480x270 @ MP4; 22 = 1280x720 @ MP4; 35 = 640x360
+     * 
+     * @ FLV;
+     */
+
+    final JComboBox formats = new JComboBox(new Object[] {
+        new YoutubeFormat(18, "MP4 (iTunes)"),
+        new YoutubeFormat(17, "Compact PSP"), new YoutubeFormat(FLV, "FLV"),
+        new YoutubeFormat(22, "HD (MP4)") });
     JButton copyButton = new JButton("Copy to buffer");
     copyButton.addActionListener(new ActionListener() {
       public void actionPerformed(ActionEvent e) {
-        StringSelection stringSelection = new StringSelection( result.getText() );
+        StringSelection stringSelection = new StringSelection(result.getText());
         Clipboard clipboard = Toolkit.getDefaultToolkit().getSystemClipboard();
-        clipboard.setContents(stringSelection, Gui.this );
+        clipboard.setContents(stringSelection, Gui.this);
       }
     });
     JButton generateButton = new JButton("Generate podcast URL");
     generateButton.addActionListener(new ActionListener() {
       public void actionPerformed(ActionEvent e) {
         String text = id.getText();
-        if (text.length() == 0) {
-          JOptionPane.showMessageDialog(frame, "You must enter id", "Input error", JOptionPane.ERROR_MESSAGE);
+        if ((text.length() == 0) && !typeStandart.isSelected()) {
+          JOptionPane.showMessageDialog(frame, "You must enter id",
+              "Input error", JOptionPane.ERROR_MESSAGE);
           return;
         }
-        int format = ((YoutubeFormat)formats.getSelectedItem()).getId();
-        if (typeUser.isSelected()) {
-          result.setText(getUserPodcastUrl(text, format));
-        } else if (typePlaylist.isSelected()) {
-          result.setText(getPlaylistPodcastUrl(text, format));
-        } else if (typeFavorites.isSelected()) {
-          result.setText(getFavoritesPodcastUrl(text, format));
+        int size = -1;
+        if (size25.isSelected()) {
+          size = 25;
+        } else if (size50.isSelected()) {
+          size = 50;
         } else {
-          JOptionPane.showMessageDialog(frame, "Select feed type", "Input error", JOptionPane.ERROR_MESSAGE);
+          JOptionPane.showMessageDialog(frame, "Select feed size",
+              "Input error", JOptionPane.ERROR_MESSAGE);
+        }
+        int format = ((YoutubeFormat) formats.getSelectedItem()).getId();
+        if (typeUser.isSelected()) {
+          result.setText(getUserPodcastUrl(text, format, size));
+        } else if (typePlaylist.isSelected()) {
+          result.setText(getPlaylistPodcastUrl(text, format, size));
+        } else if (typeFavorites.isSelected()) {
+          result.setText(getFavoritesPodcastUrl(text, format, size));
+        } else if (typeStandart.isSelected()) {
+          StandardFeed feed = (StandardFeed) standardFeeds.getSelectedItem();
+          result.setText(getStandardUrl(feed, format, size));
+        } else {
+          JOptionPane.showMessageDialog(frame, "Select feed type",
+              "Input error", JOptionPane.ERROR_MESSAGE);
         }
       }
     });
-
-		JPanel infoPanel = new JPanel(new MigLayout("", "[][grow][]", "[][][][grow]"));
-		infoPanel.add(typeLabel, "");
-		infoPanel.add(typeUser, "split 3");
-		infoPanel.add(typePlaylist, "");
-		infoPanel.add(typeFavorites, "wrap");
-		infoPanel.add(formatLabel, "");
-		infoPanel.add(formats, "wrap");
-		infoPanel.add(idLabel, "");
-		infoPanel.add(id, "growx, width 30::");
-		infoPanel.add(generateButton, "wrap");
-		infoPanel.add(resultLabel, "top");
-		infoPanel.add(result, "grow, width 30:300:, height 10:100:");
-		infoPanel.add(copyButton, "top");
+    infoPanel.add(typeLabel, "");
+    infoPanel.add(typeUser, "split 4");
+    infoPanel.add(typePlaylist, "");
+    infoPanel.add(typeFavorites, "");
+    infoPanel.add(typeStandart, "wrap");
+    infoPanel.add(formatLabel, "");
+    infoPanel.add(formats, "wrap");
+    infoPanel.add(sizeLabel, "");
+    infoPanel.add(size25, "split 2");
+    infoPanel.add(size50, "wrap");
+    infoPanel.add(idLabel, "split 2,hidemode 2");
+    infoPanel.add(standardFeedLabel, "hidemode 2");
+    infoPanel.add(id, "growx, width 30::,split 2,hidemode 2");
+    infoPanel.add(standardFeeds, "growx, width 30::,hidemode 2");
+    infoPanel.add(generateButton, "wrap");
+    infoPanel.add(resultLabel, "top");
+    infoPanel.add(result, "grow, width 30:300:, height 10:100:");
+    infoPanel.add(copyButton, "top");
     return infoPanel;
   }
 
-  private String getPlaylistPodcastUrl(String text, int format) {
-    return getPodcastUrl("playlist", text, format);
+  private String getStandardUrl(StandardFeed feed, int format, int size) {
+    return getPodcastUrl("standard", feed.getId(), format, size);
   }
 
-  private String getFavoritesPodcastUrl(String text, int format) {
-    return getPodcastUrl("favorite", text, format);
+  private String getPlaylistPodcastUrl(String text, int format, int size) {
+    return getPodcastUrl("playlist", text, format, size);
   }
 
-  private String getUserPodcastUrl(String text, int format) {
-    return getPodcastUrl("user.rss", text, format);
+  private String getFavoritesPodcastUrl(String text, int format, int size) {
+    return getPodcastUrl("favorite", text, format, size);
   }
 
-  private String getPodcastUrl(String type, String text, int format) {
+  private String getUserPodcastUrl(String text, int format, int size) {
+    return getPodcastUrl("user.rss", text, format, size);
+  }
+
+  private String getPodcastUrl(String type, String text, int format, int size) {
     String hostname = getHostName();
-    return "http://"+ getHostName() +":"+server.getPort()+"/"+type+"?id="+text+"&format="+format+"&host="+hostname+"&port="+server.getPort();
+    return "http://" + getHostName() + ":" + port + "/" + type + "?id=" + text
+        + "&format=" + format + "&host=" + hostname + "&port=" + port
+        + "&size=" + size;
   }
 
   private String getHostName() {
     try {
       return InetAddress.getLocalHost().getHostName();
     } catch (UnknownHostException e) {
-      JOptionPane.showMessageDialog(frame, "Cann't detect IP address, please change it manually", "Error", JOptionPane.ERROR_MESSAGE);
+      JOptionPane.showMessageDialog(frame,
+          "Cann't detect IP address, please change it manually", "Error",
+          JOptionPane.ERROR_MESSAGE);
       return "<INSERT YOUR IP ADDRESS>";
     }
   }
 
-  private JPanel createStartStopPanel() {
-    proxyMode = new JCheckBox();
-    proxyMode.setSelected(server.isProxyMode());
-    
-    port = new JTextField(5);
-    port.setText(""+server.getPort());
+  private JPanel createStartStopPanel(final JDialog settings, int portValue,
+      boolean proxyModeValue) {
+    final JCheckBox proxyMode = new JCheckBox();
+    proxyMode
+        .setToolTipText("Check this to proxy all videos through program, otherwise users will be redirected to result video directly from YouTube");
+    proxyMode.setSelected(proxyModeValue);
+    final JTextField port = new JTextField(5);
+    port.setToolTipText("Server port number for podcast server");
+    port.setText("" + portValue);
+    port.setInputVerifier(new InputVerifier() {
+      public boolean verify(JComponent input) {
+        String value = port.getText();
+        int port = -1;
+        try {
+          port = Integer.parseInt(value);
+        } catch (NumberFormatException e) {
+        }
+        if ((port > 0) && (port < 65535)) {
+          return true;
+        } else {
+          JOptionPane.showMessageDialog(settings,
+              "Port must be number between 0 and 65535", "Input error",
+              JOptionPane.ERROR_MESSAGE);
+          return false;
+        }
+      }
 
-    JButton updatePortButton = new JButton("Restart with new settings");
+      @Override
+      public boolean shouldYieldFocus(JComponent input) {
+        return verify(input);
+      }
+    });
+    JButton updatePortButton = new JButton("Use new settings");
     updatePortButton.addActionListener(new ActionListener() {
       public void actionPerformed(ActionEvent e) {
-      	stopServer();
+        saveSettings(Integer.parseInt(port.getText()), proxyMode.isSelected());
+        stopServer();
         startServer();
+      }
+    });
+    JButton cancel = new JButton("Cancel");
+    cancel.addActionListener(new ActionListener() {
+      public void actionPerformed(ActionEvent e) {
+        settings.dispose();
       }
     });
 
-    startButton = new JButton("Start");
-    startButton.addActionListener(new ActionListener() {
-      public void actionPerformed(ActionEvent e) {
-        startServer();
-      }
-    });
-    stopButton = new JButton("Stop");
-    stopButton.setEnabled(false);
-    stopButton.addActionListener(new ActionListener() {
-      public void actionPerformed(ActionEvent e) {
-        stopServer();
-      }
-    });
-    
-		JPanel serverPanel = new JPanel(new MigLayout("", "[][][]", "[][][][grow]"));
-		serverPanel.add(new JLabel("Podcast server"), "");
-		serverPanel.add(startButton, "");
-		serverPanel.add(stopButton, "wrap");
-		serverPanel.add(new JLabel("Port"), "");
-		serverPanel.add(port, "wrap");
-		serverPanel.add(new JLabel("Proxy mode"), "");
-		serverPanel.add(proxyMode, "wrap");
-		serverPanel.add(updatePortButton, "");
-    
+    JPanel serverPanel = new JPanel(new MigLayout("", "[grow][grow]",
+        "[][][grow]"));
+    serverPanel.add(new JLabel("Port"), "w 50%");
+    serverPanel.add(port, "w 50%, wrap");
+    serverPanel.add(new JLabel("Proxy mode"), "");
+    serverPanel.add(proxyMode, "wrap");
+    serverPanel.add(updatePortButton, "split 2, span 2, center");
+    serverPanel.add(cancel, "");
     return serverPanel;
+  }
+
+  private void saveSettings(int port, boolean isProxyMode) {
+    Preferences prefs = Preferences.userNodeForPackage(this.getClass());
+    prefs.putBoolean(PROXY_MODE_PREF, isProxyMode);
+    prefs.putInt(PORT_PREF, port);
+    this.port = port;
+    this.proxyMode = isProxyMode;
   }
 
   private void stopServer() {
     boolean result = server.stop();
     if (result) {
-      stopButton.setEnabled(false);
-      startButton.setEnabled(true);
+      stopServer.setEnabled(false);
+      startServer.setEnabled(true);
     } else {
-      JOptionPane.showMessageDialog(frame, "Cann't stop server, for error message - check logs", "Server error", JOptionPane.ERROR_MESSAGE);
+      JOptionPane.showMessageDialog(frame,
+          "Cann't stop server, for error message - check logs", "Server error",
+          JOptionPane.ERROR_MESSAGE);
     }
     updateStats();
   }
 
   private static void updateStats() {
-
   }
 
   public void startServer() {
-    startButton.setEnabled(false);
-    stopButton.setEnabled(true);
+    startServer.setEnabled(false);
+    stopServer.setEnabled(true);
     new Thread(new Runnable() {
       public void run() {
-      	server.setPort(Integer.parseInt(port.getText()));
-      	server.setProxyMode(proxyMode.isSelected());
-      	boolean result = server.start();
+        server.setPort(port);
+        server.setProxyMode(proxyMode);
+        boolean result = server.start();
         if (!result) {
-          JOptionPane.showMessageDialog(frame, "Cann't start server, for error message - check logs", "Server error", JOptionPane.ERROR_MESSAGE);
-          startButton.setEnabled(true);
-          stopButton.setEnabled(false);
+          JOptionPane.showMessageDialog(frame,
+              "Cann't start server, for error message - check logs",
+              "Server error", JOptionPane.ERROR_MESSAGE);
+          startServer.setEnabled(true);
+          stopServer.setEnabled(false);
         }
       }
     }).start();
     updateStats();
   }
 
-
   public static void main(String[] args) {
-  	PodcastServer server = new PodcastServer() {
-			@Override
+    PodcastServer server = new PodcastServer() {
+      @Override
       public int getPort() {
-	      return 0;
+        return 0;
       }
 
-			@Override
+      @Override
       public void setPort(int parseInt) {
+      }
 
-			}
-
-			@Override
+      @Override
       public boolean start() {
-	      return false;
+        return false;
       }
 
-			@Override
+      @Override
       public boolean stop() {
-	      return false;
+        return false;
       }
 
-			@Override
+      @Override
       public boolean isProxyMode() {
-	      return false;
+        return false;
       }
 
-			@Override
+      @Override
       public void setProxyMode(boolean selected) {
       }
-  	};
+    };
     Gui gui = new Gui();
     gui.setServer(server);
     gui.createGui();
@@ -285,7 +447,6 @@ public class Gui implements ClipboardOwner {
   private class YoutubeFormat {
     private int id;
     private String name;
-
     public YoutubeFormat(int id, String name) {
       this.id = id;
       this.name = name;
@@ -298,13 +459,13 @@ public class Gui implements ClipboardOwner {
 
     @Override
     public boolean equals(Object o) {
-      if (this == o) return true;
-      if (o == null || getClass() != o.getClass()) return false;
-
+      if (this == o)
+        return true;
+      if (o == null || getClass() != o.getClass())
+        return false;
       YoutubeFormat that = (YoutubeFormat) o;
-
-      if (id != that.id) return false;
-
+      if (id != that.id)
+        return false;
       return true;
     }
 
@@ -318,8 +479,42 @@ public class Gui implements ClipboardOwner {
     }
   }
 
-	@Override
+  @Override
   public void lostOwnership(Clipboard arg0, Transferable arg1) {
   }
 
+  private class StandardFeed {
+    private String id;
+    private String name;
+    public StandardFeed(String id, String name) {
+      this.id = id;
+      this.name = name;
+    }
+
+    @Override
+    public String toString() {
+      return name;
+    }
+
+    @Override
+    public boolean equals(Object o) {
+      if (this == o)
+        return true;
+      if (o == null || getClass() != o.getClass())
+        return false;
+      StandardFeed that = (StandardFeed) o;
+      if (!id.equals(that.id))
+        return false;
+      return true;
+    }
+
+    @Override
+    public int hashCode() {
+      return id.hashCode();
+    }
+
+    public String getId() {
+      return id;
+    }
+  }
 }
