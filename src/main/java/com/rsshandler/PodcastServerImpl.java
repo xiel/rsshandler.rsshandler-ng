@@ -60,10 +60,10 @@ public class PodcastServerImpl implements PodcastServer {
   	int port = 8083;
   	boolean proxyMode = false;
   	if (args.length > 1) {
-  		port = Integer.parseInt(args[1]);
+  		port = Integer.parseInt(args[0]);
   	}
   	if (args.length > 2) {
-  		proxyMode = "true".equals(args[2]);
+  		proxyMode = "true".equals(args[1]);
   	}
 	  PodcastServerImpl server = new PodcastServerImpl(port, proxyMode);
 	  server.start();

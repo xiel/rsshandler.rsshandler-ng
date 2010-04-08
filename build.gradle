@@ -67,6 +67,7 @@ task release(dependsOn: 'jar') << {
   dir = 'build/signed'
   ant.copy(file:"rsshandler.jnlp", tofile:"$dir/rsshandler-${version}.jnlp")
   updateJnlp("$dir/rsshandler-${version}.jnlp", 'http://rsshandler.googlecode.com/files/', false)
+  ant.gcupload(username:gcusername, password:gcpassword, projectname:"rsshandler", filename:'build/signed/rsshandler-${version}.jnlp', targetfilename:'rsshandler.jnlp', summary:"JWS installation script", labels:"Featured")
 }
 
 void createLocalDeployment(String dir, String codebase) {
@@ -75,7 +76,7 @@ void createLocalDeployment(String dir, String codebase) {
   for(file in configurations.runtime.resolve()) {
     ant.signjar(destDir: dir, jar: file, alias:"myself", keystore:"myKeystore", storepass:"123456", preservelastmodified:"true")
   }
-  createLocalJar(filename:"$dir/rsshandler-${version}.jnlp", codebase:codebase)
+  createLocalJar(dir, codebase)
 }
 
 void createLocalJar(String dir, String codebase) {
@@ -83,5 +84,3 @@ void createLocalJar(String dir, String codebase) {
   ant.copy(file:"rsshandler.jnlp", tofile:"$dir/rsshandler-${version}.jnlp")
   updateJnlp("$dir/rsshandler-${version}.jnlp", codebase, true)
 }
-
-
