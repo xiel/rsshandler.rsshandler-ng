@@ -2,6 +2,7 @@ package com.rsshandler;
 
 import com.rsshandler.servlets.FavoriteServlet;
 import com.rsshandler.servlets.PlaylistServlet;
+import com.rsshandler.servlets.StandardServlet;
 import com.rsshandler.servlets.UserServlet;
 import com.rsshandler.servlets.VideoServlet;
 import org.eclipse.jetty.server.Server;
@@ -13,9 +14,7 @@ public class PodcastServerImpl implements PodcastServer {
   private int port;
   private boolean proxyMode = false;
 
-  public PodcastServerImpl(int port, boolean proxyMode) {
-  	this.proxyMode = proxyMode;
-		this.setPort(port);
+  public PodcastServerImpl() {
   }
 
   public boolean stop() {
@@ -38,6 +37,7 @@ public class PodcastServerImpl implements PodcastServer {
       context.addServlet(new ServletHolder(new UserServlet()),"/user.rss");
       context.addServlet(new ServletHolder(new PlaylistServlet()),"/playlist");
       context.addServlet(new ServletHolder(new FavoriteServlet()),"/favorite");
+      context.addServlet(new ServletHolder(new StandardServlet()),"/standard");
       context.addServlet(new ServletHolder(new VideoServlet(proxyMode)),"/video.mp4");
       server.start();
       server.join();
@@ -65,7 +65,9 @@ public class PodcastServerImpl implements PodcastServer {
   	if (args.length > 2) {
   		proxyMode = "true".equals(args[1]);
   	}
-	  PodcastServerImpl server = new PodcastServerImpl(port, proxyMode);
+	  PodcastServerImpl server = new PodcastServerImpl();
+	  server.setPort(port);
+	  server.setProxyMode(true);
 	  server.start();
   }
 

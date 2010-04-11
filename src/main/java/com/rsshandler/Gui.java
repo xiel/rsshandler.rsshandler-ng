@@ -115,35 +115,6 @@ public class Gui implements ClipboardOwner {
     JLabel sizeLabel = new JLabel("Size");
     JLabel resultLabel = new JLabel("Result podcast URL");
 
-    // final JComboBox standardFeeds = new JComboBox(new Object[] {new
-    // StandardFeed("http://gdata.youtube.com/feeds/api/standardfeeds/recently_featured?v=2&alt=rss",
-    // "Recently featured"),
-    // new
-    // StandardFeed("http://gdata.youtube.com/feeds/api/standardfeeds/most_viewed?v=2&alt=rss",
-    // "Most viewed"),
-    // new
-    // StandardFeed("http://gdata.youtube.com/feeds/api/standardfeeds/most_popular?v=2&alt=rss",
-    // "Most popular"),
-    // new
-    // StandardFeed("http://gdata.youtube.com/feeds/api/standardfeeds/most_recent?v=2&alt=rss",
-    // "Most recent"),
-    // new
-    // StandardFeed("http://gdata.youtube.com/feeds/api/standardfeeds/most_discussed?v=2&alt=rss",
-    // "Most discussed"),
-    // new
-    // StandardFeed("http://gdata.youtube.com/feeds/api/standardfeeds/most_linked?v=2&alt=rss",
-    // "Most linked"),
-    // new
-    // StandardFeed("http://gdata.youtube.com/feeds/api/standardfeeds/most_responded?v=2&alt=rss",
-    // "Most responded"),
-    // new
-    // StandardFeed("http://gdata.youtube.com/feeds/api/standardfeeds/top_rated?v=2&alt=rss",
-    // "Top rated"),
-    // new
-    // StandardFeed("http://gdata.youtube.com/feeds/api/standardfeeds/top_favorites?v=2&alt=rss",
-    // "Top favorites"),
-    // });
-
     final JComboBox standardFeeds = new JComboBox(new Object[] { new StandardFeed("recently_featured", "Recently featured"), new StandardFeed("most_viewed", "Most viewed"),
         new StandardFeed("most_popular", "Most popular"), new StandardFeed("most_recent", "Most recent"), new StandardFeed("most_discussed", "Most discussed"),
         new StandardFeed("most_linked", "Most linked"), new StandardFeed("most_responded", "Most responded"), new StandardFeed("top_rated", "Top rated"),
@@ -320,6 +291,7 @@ public class Gui implements ClipboardOwner {
         saveSettings(Integer.parseInt(port.getText()), proxyMode.isSelected());
         stopServer();
         startServer();
+        settings.dispose();
       }
     });
     JButton cancel = new JButton("Cancel");

@@ -34,7 +34,8 @@ public abstract class RssServlet extends HttpServlet {
   	String host = request.getParameter("host");
     String port = request.getParameter("port");
     int format = Integer.parseInt(request.getParameter("format"));
-    URL url = new URL(getRssUrl(request));
+    String parameters = String.format("?alt=rss&v=2&max-results=%s", request.getParameter("size"));
+    URL url = new URL(getRssUrl(request)+parameters);
     logger.info(String.format("RSS URL: %s", url));
     URLConnection connection = url.openConnection();
     logger.info(String.format("Request properties: %s", connection.getRequestProperties()));

@@ -6,6 +6,6 @@ public class PlaylistServlet extends RssServlet {
 
 	@Override
   protected String getRssUrl(HttpServletRequest request) {
-	  return String.format("http://gdata.youtube.com/feeds/api/playlists/%s?v=2&alt=rss", request.getParameter("id"));
+	  return String.format("http://gdata.youtube.com/feeds/api/playlists/%s", request.getParameter("id"));
   }
 }
