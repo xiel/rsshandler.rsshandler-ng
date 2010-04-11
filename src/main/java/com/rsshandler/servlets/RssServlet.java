@@ -43,7 +43,7 @@ public abstract class RssServlet extends HttpServlet {
     logger.info(String.format("Headers: %s", connection.getHeaderFields()));
     str = replaceEnclosures(str, format, host, port, request.getParameter("removeDescription").equals("true"), request.getParameter("removeTitle").equals("true"));
 //    logger.info(str);
-    response.setContentType("application/rss+xml");
+    response.setContentType("application/rss+xml; charset=UTF-8");
     response.setStatus(HttpServletResponse.SC_OK);
     response.getWriter().write(str);
   }
