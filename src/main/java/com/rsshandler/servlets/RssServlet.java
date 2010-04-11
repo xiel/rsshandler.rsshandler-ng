@@ -34,15 +34,15 @@ public abstract class RssServlet extends HttpServlet {
   	String host = request.getParameter("host");
     String port = request.getParameter("port");
     int format = Integer.parseInt(request.getParameter("format"));
-    String parameters = String.format("?alt=rss&v=2&max-results=%s", request.getParameter("size"));
+    String parameters = String.format("?alt=rss&v=2&max-results=%s&orderby=%s", request.getParameter("size"), request.getParameter("orderby"));
     URL url = new URL(getRssUrl(request)+parameters);
     logger.info(String.format("RSS URL: %s", url));
     URLConnection connection = url.openConnection();
     logger.info(String.format("Request properties: %s", connection.getRequestProperties()));
     String str = Utils.readString(connection.getInputStream());
     logger.info(String.format("Headers: %s", connection.getHeaderFields()));
-    str = replaceEnclosures(str, format, host, port);
-    logger.info(str);
+    str = replaceEnclosures(str, format, host, port, request.getParameter("removeDescription").equals("true"), request.getParameter("removeTitle").equals("true"));
+//    logger.info(str);
     response.setContentType("application/rss+xml");
     response.setStatus(HttpServletResponse.SC_OK);
     response.getWriter().write(str);
@@ -51,7 +51,7 @@ public abstract class RssServlet extends HttpServlet {
   protected abstract String getRssUrl(HttpServletRequest request);
 
 //TODO try to implement normal XML parsing and element insertion, this way it should be more stable
-  String replaceEnclosures(String str, int format, String host, String port) {
+  String replaceEnclosures(String str, int format, String host, String port, boolean removeDescription, boolean removeTitle) {
     Pattern pattern = Pattern.compile("<link>http\\://www.youtube.com/watch\\?v=(.+?)</link><author>");
     Matcher matcher = pattern.matcher(str);
     String formattype = "video/mp4";
@@ -71,17 +71,23 @@ public abstract class RssServlet extends HttpServlet {
       String newenclosure = String.format("%s</link><enclosure url=\"http://"+host+":"+port+"/video.mp4?format=%s&amp;id=%s\" length=\"35\" type=\"%s\"/><author>", link, format, link, formattype);
       str = str.replace(oldenclosure, newenclosure);
     }
-//    Pattern pattern2 = Pattern.compile("<title>(.*?)</title>");
-//    Matcher matcher2 = pattern2.matcher(str);
-//    while (matcher2.find()) {
-//      String link = matcher2.group(1);
-//      System.out.println(link);
-//    }    
-    
-//    str = str.replaceAll("<title>(.*?)</title>", "<title>zzzz</title>");
-//    Pattern desc = Pattern.compile("<description>.*?</description>", Pattern.DOTALL);
-//    Matcher descmatcher = desc.matcher(str);
-//    str = descmatcher.replaceAll("<description></description>");
+    if (removeTitle) {
+      Pattern desc = Pattern.compile("<title>.*?</title>", Pattern.DOTALL);
+      Matcher descmatcher = desc.matcher(str);
+      str = descmatcher.replaceAll("<title></title>");
+    }
+    if (removeDescription) {
+      Pattern desc = Pattern.compile("<description>.*?</description>", Pattern.DOTALL);
+      Matcher descmatcher = desc.matcher(str);
+      str = descmatcher.replaceAll("<description></description>");
+      Pattern mediadesc = Pattern.compile("<media\\:description type\\='plain'>.*?</media\\:description>", Pattern.DOTALL);
+      Matcher mediadescmatcher = mediadesc.matcher(str);
+      str = mediadescmatcher.replaceAll("<media:description type='plain'></media:description>");
+    }
+    Pattern mediagroup = Pattern.compile("<media:group>.*?</media:group>", Pattern.DOTALL);
+    Matcher mediagroupmatcher = mediagroup.matcher(str);
+    str = mediagroupmatcher.replaceAll("");
+    str = str.replaceAll("<category.*?>.*?</category>", "");
     return str;
   }
 

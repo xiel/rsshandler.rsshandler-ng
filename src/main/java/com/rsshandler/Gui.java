@@ -109,6 +109,8 @@ public class Gui implements ClipboardOwner {
     JPanel infoPanel = new JPanel(new MigLayout("", "[][grow][]", "[][][][][grow]"));
     JLabel typeLabel = new JLabel("");
     JLabel formatLabel = new JLabel("Format");
+    JLabel orderbyLabel = new JLabel("Order by");
+    JLabel removeLabel = new JLabel("Remove feed content");
     final JLabel idLabel = new JLabel("ID");
     final JLabel standardFeedLabel = new JLabel("Feed type");
     standardFeedLabel.setVisible(false);
@@ -137,6 +139,21 @@ public class Gui implements ClipboardOwner {
     sizes.add(size25);
     sizes.add(size50);
     size25.setSelected(true);
+
+    ButtonGroup orderby = new ButtonGroup();
+    final JRadioButton orderbyPublished = new JRadioButton("published");
+    orderbyPublished.setToolTipText("Order by publishing date in reverse order");
+    final JRadioButton orderbyPosition = new JRadioButton("position (for playlists)");
+    orderbyPosition.setToolTipText("Order by item position in playlist, used in playlists");
+    orderby.add(orderbyPublished);
+    orderby.add(orderbyPosition);
+    orderbyPublished.setSelected(true);
+    
+    final JCheckBox removeDescription = new JCheckBox("description");
+    removeDescription.setToolTipText("Remove description from feed items");
+    final JCheckBox removeTitle = new JCheckBox("title");
+    removeTitle.setToolTipText("Remove title from feed items");
+    removeDescription.setSelected(true);
 
     final JTextField id = new JTextField();
     id.setToolTipText("Name that identifies feed with given type: for user and favorites feeds - user name, for playlists - playlist id");
@@ -191,16 +208,24 @@ public class Gui implements ClipboardOwner {
         } else {
           JOptionPane.showMessageDialog(frame, "Select feed size", "Input error", JOptionPane.ERROR_MESSAGE);
         }
+        String orderby = null;
+        if (orderbyPublished.isSelected()) {
+          orderby = "published";
+        } else if (orderbyPosition.isSelected()) {
+          orderby = "position";
+        } else {
+          JOptionPane.showMessageDialog(frame, "Select order by", "Input error", JOptionPane.ERROR_MESSAGE);
+        }
         int format = ((YoutubeFormat) formats.getSelectedItem()).getId();
         if (typeUser.isSelected()) {
-          result.setText(getUserPodcastUrl(text, format, size));
+          result.setText(getUserPodcastUrl(text, format, size, orderby, removeDescription.isSelected(), removeTitle.isSelected()));
         } else if (typePlaylist.isSelected()) {
-          result.setText(getPlaylistPodcastUrl(text, format, size));
+          result.setText(getPlaylistPodcastUrl(text, format, size, orderby, removeDescription.isSelected(), removeTitle.isSelected()));
         } else if (typeFavorites.isSelected()) {
-          result.setText(getFavoritesPodcastUrl(text, format, size));
+          result.setText(getFavoritesPodcastUrl(text, format, size, orderby, removeDescription.isSelected(), removeTitle.isSelected()));
         } else if (typeStandart.isSelected()) {
           StandardFeed feed = (StandardFeed) standardFeeds.getSelectedItem();
-          result.setText(getStandardUrl(feed, format, size));
+          result.setText(getStandardUrl(feed, format, size, orderby, removeDescription.isSelected(), removeTitle.isSelected()));
         } else {
           JOptionPane.showMessageDialog(frame, "Select feed type", "Input error", JOptionPane.ERROR_MESSAGE);
         }
@@ -216,6 +241,12 @@ public class Gui implements ClipboardOwner {
     infoPanel.add(sizeLabel, "");
     infoPanel.add(size25, "split 2");
     infoPanel.add(size50, "wrap");
+    infoPanel.add(orderbyLabel, "");
+    infoPanel.add(orderbyPublished, "split 2");
+    infoPanel.add(orderbyPosition, "wrap");
+    infoPanel.add(removeLabel, "");
+    infoPanel.add(removeDescription, "split 2");
+    infoPanel.add(removeTitle, "wrap");
     infoPanel.add(idLabel, "split 2,hidemode 2");
     infoPanel.add(standardFeedLabel, "hidemode 2");
     infoPanel.add(id, "growx, width 30::,split 2,hidemode 2");
@@ -227,25 +258,25 @@ public class Gui implements ClipboardOwner {
     return infoPanel;
   }
 
-  private String getStandardUrl(StandardFeed feed, int format, int size) {
-    return getPodcastUrl("standard", feed.getId(), format, size);
+  private String getStandardUrl(StandardFeed feed, int format, int size, String orderby, boolean removeDescription, boolean removeTitle) {
+    return getPodcastUrl("standard", feed.getId(), format, size, orderby, removeDescription, removeTitle);
   }
 
-  private String getPlaylistPodcastUrl(String text, int format, int size) {
-    return getPodcastUrl("playlist", text, format, size);
+  private String getPlaylistPodcastUrl(String text, int format, int size, String orderby, boolean removeDescription, boolean removeTitle) {
+    return getPodcastUrl("playlist", text, format, size, orderby, removeDescription, removeTitle);
   }
 
-  private String getFavoritesPodcastUrl(String text, int format, int size) {
-    return getPodcastUrl("favorite", text, format, size);
+  private String getFavoritesPodcastUrl(String text, int format, int size, String orderby, boolean removeDescription, boolean removeTitle) {
+    return getPodcastUrl("favorite", text, format, size, orderby, removeDescription, removeTitle);
   }
 
-  private String getUserPodcastUrl(String text, int format, int size) {
-    return getPodcastUrl("user.rss", text, format, size);
+  private String getUserPodcastUrl(String text, int format, int size, String orderby, boolean removeDescription, boolean removeTitle) {
+    return getPodcastUrl("user.rss", text, format, size, orderby, removeDescription, removeTitle);
   }
 
-  private String getPodcastUrl(String type, String text, int format, int size) {
+  private String getPodcastUrl(String type, String text, int format, int size, String orderby, boolean removeDescription, boolean removeTitle) {
     String hostname = getHostName();
-    return "http://" + getHostName() + ":" + port + "/" + type + "?id=" + text + "&format=" + format + "&host=" + hostname + "&port=" + port + "&size=" + size;
+    return "http://" + getHostName() + ":" + port + "/" + type + "?id=" + text + "&format=" + format + "&host=" + hostname + "&port=" + port + "&size=" + size + "&orderby=" + orderby + "&removeDescription=" + removeDescription + "&removeTitle=" + removeTitle;
   }
 
   private String getHostName() {

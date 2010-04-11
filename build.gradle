@@ -51,8 +51,8 @@ void updateJnlp(String filename, String codebase, boolean updateHref) {
 
 task uploadBetaJar(dependsOn: 'jar') << {
   createLocalJar('build/signed', 'http://rsshandler.googlecode.com/files/')
-  ant.gcupload(username:gcusername, password:gcpassword, projectname:"rsshandler", filename:'build/signed/rsshandler-${version}.jar', targetfilename:'rsshandler-1.0.jar', summary:"RSS Handler java binary files", labels:"Featured")
-  ant.gcupload(username:gcusername, password:gcpassword, projectname:"rsshandler", filename:'build/signed/rsshandler-${version}.jnlp', targetfilename:'rsshandler-${version}.jnlp', summary:"JWS installation script", labels:"Featured")
+  ant.gcupload(username:gcusername, password:gcpassword, projectname:"rsshandler", filename:"build/signed/rsshandler-${version}.jar", targetfilename:"rsshandler-${version}.jar", summary:"RSS Handler java binary files", labels:"")
+  ant.gcupload(username:gcusername, password:gcpassword, projectname:"rsshandler", filename:"build/signed/rsshandler-${version}.jnlp", targetfilename:"rsshandler-${version}.jnlp", summary:"JWS installation script", labels:"")
 }
 
 task uploadBetaAll << {
@@ -67,7 +67,7 @@ task release(dependsOn: 'jar') << {
   dir = 'build/signed'
   ant.copy(file:"rsshandler.jnlp", tofile:"$dir/rsshandler-${version}.jnlp")
   updateJnlp("$dir/rsshandler-${version}.jnlp", 'http://rsshandler.googlecode.com/files/', false)
-  ant.gcupload(username:gcusername, password:gcpassword, projectname:"rsshandler", filename:'build/signed/rsshandler-${version}.jnlp', targetfilename:'rsshandler.jnlp', summary:"JWS installation script", labels:"Featured")
+  ant.gcupload(username:gcusername, password:gcpassword, projectname:"rsshandler", filename:"build/signed/rsshandler-${version}.jnlp", targetfilename:"rsshandler.jnlp", summary:"JWS installation script", labels:"Featured")
 }
 
 void createLocalDeployment(String dir, String codebase) {
