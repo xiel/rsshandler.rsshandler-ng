@@ -34,14 +34,22 @@ public abstract class RssServlet extends HttpServlet {
   	String host = request.getParameter("host");
     String port = request.getParameter("port");
     int format = Integer.parseInt(request.getParameter("format"));
-    String parameters = String.format("?alt=rss&v=2&max-results=%s&orderby=%s", request.getParameter("size"), request.getParameter("orderby"));
+    String size = request.getParameter("size");
+    if (size == null) {
+      size = "25";
+    }
+    String orderby = request.getParameter("orderby");
+    if (orderby == null) {
+      orderby = "published";
+    }
+    String parameters = String.format("?alt=rss&v=2&max-results=%s&orderby=%s", size, orderby);
     URL url = new URL(getRssUrl(request)+parameters);
     logger.info(String.format("RSS URL: %s", url));
     URLConnection connection = url.openConnection();
     logger.info(String.format("Request properties: %s", connection.getRequestProperties()));
     String str = Utils.readString(connection.getInputStream());
     logger.info(String.format("Headers: %s", connection.getHeaderFields()));
-    str = replaceEnclosures(str, format, host, port, request.getParameter("removeDescription").equals("true"), request.getParameter("removeTitle").equals("true"));
+    str = replaceEnclosures(str, format, host, port, "true".equals(request.getParameter("removeDescription")), "true".equals(request.getParameter("removeTitle")));
 //    logger.info(str);
     response.setContentType("application/rss+xml; charset=UTF-8");
     response.setStatus(HttpServletResponse.SC_OK);
@@ -61,12 +69,6 @@ public abstract class RssServlet extends HttpServlet {
     while (matcher.find()) {
       String link = matcher.group(1);
       logger.info(String.format("Video id: %s", link));
-//      int end = -1;
-//      String videoid = link;
-//      if ((end = videoid.indexOf('&')) > -1) {
-//    	  videoid = videoid.substring(0, end);
-//      }
-//      logger.info(link);
       String oldenclosure = String.format("%s</link><author>", link);
       String newenclosure = String.format("%s</link><enclosure url=\"http://"+host+":"+port+"/video.mp4?format=%s&amp;id=%s\" length=\"35\" type=\"%s\"/><author>", link, format, link, formattype);
       str = str.replace(oldenclosure, newenclosure);
