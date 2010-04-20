@@ -106,13 +106,13 @@ public class Gui implements ClipboardOwner {
   }
 
   private JPanel createGeneratorPanel() {
-    JPanel infoPanel = new JPanel(new MigLayout("", "[][grow][]", "[][][][][grow]"));
+    JPanel infoPanel = new JPanel(new MigLayout("", "[][grow][]", "[][][][][][][grow]"));
     JLabel typeLabel = new JLabel("");
     JLabel formatLabel = new JLabel("Format");
     JLabel orderbyLabel = new JLabel("Order by");
     JLabel removeLabel = new JLabel("Remove feed content");
     final JLabel idLabel = new JLabel("ID");
-    final JLabel standardFeedLabel = new JLabel("Feed type");
+    final JLabel standardFeedLabel = new JLabel("Feed type/country/period");
     standardFeedLabel.setVisible(false);
     JLabel sizeLabel = new JLabel("Size");
     JLabel resultLabel = new JLabel("Result podcast URL");
@@ -122,7 +122,21 @@ public class Gui implements ClipboardOwner {
         new StandardFeed("most_linked", "Most linked"), new StandardFeed("most_responded", "Most responded"), new StandardFeed("top_rated", "Top rated"),
         new StandardFeed("top_favorites", "Top favorites"), });
 
+    final JComboBox countries = new JComboBox(new Object[] { new Country("", "Worldwide"), new Country("AU", "Australia"), new Country("BR", "Brazil"), new Country("CA", "Canada")
+    , new Country("CZ", "Czech Republic"), new Country("FR", "France"), new Country("DE", "Germany"), new Country("GB", "Great Britain")
+    , new Country("NL", "Holland"), new Country("HK", "Hong Kong"), new Country("IN", "India"), new Country("IE", "Ireland")
+    , new Country("IL", "Israel"), new Country("IT", "Italy"), new Country("JP", "Japan"), new Country("MX", "Mexico")
+    , new Country("NZ", "New Zealand"), new Country("PL", "Poland"), new Country("RU", "Russia"), new Country("KR", "South Korea")
+    , new Country("ES", "Spain"), new Country("SE", "Sweden"), new Country("TW", "Taiwan"), new Country("US", "United States")});
+
+    final JComboBox periods = new JComboBox(new Object[] {new Period("all_time", "all time"), new Period("today", "today"), new Period("this_week", "this week"), new Period("this_month", "this month") });
+
     standardFeeds.setVisible(false);
+    countries.setVisible(false);
+    periods.setVisible(false);
+    standardFeeds.setToolTipText("Standart feed type");
+    countries.setToolTipText("Country for standart feed type, select Worldwide for all videos");
+    periods.setToolTipText("Period for standart feed");
     ButtonGroup types = new ButtonGroup();
     final JRadioButton typeUser = new JRadioButton("User");
     final JRadioButton typePlaylist = new JRadioButton("Playlist");
@@ -145,8 +159,14 @@ public class Gui implements ClipboardOwner {
     orderbyPublished.setToolTipText("Order by publishing date in reverse order");
     final JRadioButton orderbyPosition = new JRadioButton("position (for playlists)");
     orderbyPosition.setToolTipText("Order by item position in playlist, used in playlists");
+    final JRadioButton orderbyRelevance = new JRadioButton("relevance");
+    orderbyRelevance.setToolTipText("Order by relevance");
+    final JRadioButton orderbyViewCount = new JRadioButton("view count");
+    orderbyViewCount.setToolTipText("Order by view count");
     orderby.add(orderbyPublished);
     orderby.add(orderbyPosition);
+    orderby.add(orderbyRelevance);
+    orderby.add(orderbyViewCount);
     orderbyPublished.setSelected(true);
     
     final JCheckBox removeDescription = new JCheckBox("description");
@@ -165,11 +185,15 @@ public class Gui implements ClipboardOwner {
         if (e.getStateChange() == ItemEvent.SELECTED) {
           standardFeedLabel.setVisible(true);
           standardFeeds.setVisible(true);
+          countries.setVisible(true);
+          periods.setVisible(true);
           idLabel.setVisible(false);
           id.setVisible(false);
         } else if (e.getStateChange() == ItemEvent.DESELECTED) {
           standardFeedLabel.setVisible(false);
           standardFeeds.setVisible(false);
+          countries.setVisible(false);
+          periods.setVisible(false);
           idLabel.setVisible(true);
           id.setVisible(true);
         }
@@ -213,6 +237,10 @@ public class Gui implements ClipboardOwner {
           orderby = "published";
         } else if (orderbyPosition.isSelected()) {
           orderby = "position";
+        } else if (orderbyRelevance.isSelected()) {
+          orderby = "relevance";
+        } else if (orderbyViewCount.isSelected()) {
+          orderby = "viewCount";
         } else {
           JOptionPane.showMessageDialog(frame, "Select order by", "Input error", JOptionPane.ERROR_MESSAGE);
         }
@@ -225,7 +253,9 @@ public class Gui implements ClipboardOwner {
           result.setText(getFavoritesPodcastUrl(text, format, size, orderby, removeDescription.isSelected(), removeTitle.isSelected()));
         } else if (typeStandart.isSelected()) {
           StandardFeed feed = (StandardFeed) standardFeeds.getSelectedItem();
-          result.setText(getStandardUrl(feed, format, size, orderby, removeDescription.isSelected(), removeTitle.isSelected()));
+          Country country = (Country) countries.getSelectedItem();
+          Period period = (Period) periods.getSelectedItem();
+          result.setText(getStandardUrl(feed, format, size, orderby, removeDescription.isSelected(), removeTitle.isSelected(), country.getId(), period.getId()));
         } else {
           JOptionPane.showMessageDialog(frame, "Select feed type", "Input error", JOptionPane.ERROR_MESSAGE);
         }
@@ -242,15 +272,19 @@ public class Gui implements ClipboardOwner {
     infoPanel.add(size25, "split 2");
     infoPanel.add(size50, "wrap");
     infoPanel.add(orderbyLabel, "");
-    infoPanel.add(orderbyPublished, "split 2");
-    infoPanel.add(orderbyPosition, "wrap");
+    infoPanel.add(orderbyPublished, "split 4");
+    infoPanel.add(orderbyPosition, "");
+    infoPanel.add(orderbyRelevance, "");
+    infoPanel.add(orderbyViewCount, "wrap");
     infoPanel.add(removeLabel, "");
     infoPanel.add(removeDescription, "split 2");
     infoPanel.add(removeTitle, "wrap");
     infoPanel.add(idLabel, "split 2,hidemode 2");
     infoPanel.add(standardFeedLabel, "hidemode 2");
-    infoPanel.add(id, "growx, width 30::,split 2,hidemode 2");
+    infoPanel.add(id, "growx, width 30::,split 4,hidemode 2");
     infoPanel.add(standardFeeds, "growx, width 30::,hidemode 2");
+    infoPanel.add(countries, "growx, width 30::,hidemode 2");
+    infoPanel.add(periods, "growx, width 30::,hidemode 2");
     infoPanel.add(generateButton, "wrap");
     infoPanel.add(resultLabel, "top");
     infoPanel.add(result, "grow, width 30:300:, height 10:100:");
@@ -258,8 +292,13 @@ public class Gui implements ClipboardOwner {
     return infoPanel;
   }
 
-  private String getStandardUrl(StandardFeed feed, int format, int size, String orderby, boolean removeDescription, boolean removeTitle) {
-    return getPodcastUrl("standard", feed.getId(), format, size, orderby, removeDescription, removeTitle);
+  private String getStandardUrl(StandardFeed feed, int format, int size, String orderby, boolean removeDescription, boolean removeTitle, String country, String period) {
+    String url = getPodcastUrl("standard", feed.getId(), format, size, orderby, removeDescription, removeTitle);
+    if (country.length() > 0) {
+      url += "&country="+country;
+    }
+    url += "&period="+period;
+    return url;
   }
 
   private String getPlaylistPodcastUrl(String text, int format, int size, String orderby, boolean removeDescription, boolean removeTitle) {
@@ -478,6 +517,78 @@ public class Gui implements ClipboardOwner {
       if (o == null || getClass() != o.getClass())
         return false;
       StandardFeed that = (StandardFeed) o;
+      if (!id.equals(that.id))
+        return false;
+      return true;
+    }
+
+    @Override
+    public int hashCode() {
+      return id.hashCode();
+    }
+
+    public String getId() {
+      return id;
+    }
+  }
+
+  public class Country {
+    private String id;
+    private String name;
+
+    public Country(String id, String name) {
+      this.id = id;
+      this.name = name;
+    }
+
+    @Override
+    public String toString() {
+      return name;
+    }
+
+    @Override
+    public boolean equals(Object o) {
+      if (this == o)
+        return true;
+      if (o == null || getClass() != o.getClass())
+        return false;
+      Country that = (Country) o;
+      if (!id.equals(that.id))
+        return false;
+      return true;
+    }
+
+    @Override
+    public int hashCode() {
+      return id.hashCode();
+    }
+
+    public String getId() {
+      return id;
+    }
+  }
+
+  public class Period {
+    private String id;
+    private String name;
+
+    public Period(String id, String name) {
+      this.id = id;
+      this.name = name;
+    }
+
+    @Override
+    public String toString() {
+      return name;
+    }
+
+    @Override
+    public boolean equals(Object o) {
+      if (this == o)
+        return true;
+      if (o == null || getClass() != o.getClass())
+        return false;
+      Period that = (Period) o;
       if (!id.equals(that.id))
         return false;
       return true;

@@ -43,6 +43,13 @@ public abstract class RssServlet extends HttpServlet {
       orderby = "published";
     }
     String parameters = String.format("?alt=rss&v=2&max-results=%s&orderby=%s", size, orderby);
+    if (this.isTimeApplicable(request)) {
+      String period = request.getParameter("period");
+      if (period == null) {
+        period = "all_time";
+      }
+      parameters += "&time="+period;
+    }
     URL url = new URL(getRssUrl(request)+parameters);
     logger.info(String.format("RSS URL: %s", url));
     URLConnection connection = url.openConnection();
@@ -54,6 +61,10 @@ public abstract class RssServlet extends HttpServlet {
     response.setContentType("application/rss+xml; charset=UTF-8");
     response.setStatus(HttpServletResponse.SC_OK);
     response.getWriter().write(str);
+  }
+
+  protected boolean isTimeApplicable(HttpServletRequest request) {
+    return false;
   }
 
   protected abstract String getRssUrl(HttpServletRequest request);

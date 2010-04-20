@@ -4,7 +4,7 @@ sourceCompatibility = 1.6
 
 archivesBaseName = 'rsshandler'
 
-version = '2.0'
+version = '3.0'
 
 manifest.mainAttributes(
     'Main-Class': 'com.rsshandler.Main',
@@ -65,9 +65,9 @@ task uploadBetaAll << {
 
 task release(dependsOn: 'jar') << {
   dir = 'build/signed'
-  ant.copy(file:"rsshandler.jnlp", tofile:"$dir/rsshandler-${version}.jnlp")
-  updateJnlp("$dir/rsshandler-${version}.jnlp", 'http://rsshandler.googlecode.com/files/', false)
-  ant.gcupload(username:gcusername, password:gcpassword, projectname:"rsshandler", filename:"build/signed/rsshandler-${version}.jnlp", targetfilename:"rsshandler.jnlp", summary:"JWS installation script", labels:"Featured")
+  ant.copy(file:"rsshandler.jnlp", tofile:"$dir/rsshandler.jnlp")
+  updateJnlp("$dir/rsshandler.jnlp", 'http://rsshandler.googlecode.com/files/', false)
+  ant.gcupload(username:gcusername, password:gcpassword, projectname:"rsshandler", filename:"build/signed/rsshandler.jnlp", targetfilename:"rsshandler.jnlp", summary:"JWS installation script", labels:"Featured")
 }
 
 void createLocalDeployment(String dir, String codebase) {
