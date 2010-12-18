@@ -43,19 +43,19 @@ public class VideoServlet extends HttpServlet {
   		logger.info(String.format("Header: %s, %s", name, request.getHeader(name)));
   	}
   	String id = request.getParameter("id");
-		int format = Integer.parseInt(request.getParameter("format"));
-		logger.info(String.format("Video: %s, %s", id, format));
-		URL url = new URL(String.format("http://www.youtube.com/watch?v=%s&fmt=%s", id, format));
+	int format = Integer.parseInt(request.getParameter("format"));
+	logger.info(String.format("Video: %s, %s", id, format));
+	URL url = new URL(String.format("http://www.youtube.com/watch?v=%s", id));
     URLConnection connection = url.openConnection();
     logger.info(String.format("Request properties: %s", connection.getRequestProperties()));
     String str = Utils.readString(connection.getInputStream());
     logger.info(String.format("Headers: %s", connection.getHeaderFields()));
-    String redirect = getVideoLink2(str);
+    String redirect = getVideoLink2(str,format);
     if (proxy) {
-      logger.info(String.format("Proxy: %s", redirect));
+        logger.info(String.format("Proxy: %s", redirect));
     	proxyVideo(redirect, response);
     } else {
-      logger.info(String.format("Redirect: %s", redirect));
+        logger.info(String.format("Redirect: %s", redirect));
     	response.sendRedirect(redirect);
     }
   }
@@ -75,12 +75,24 @@ public class VideoServlet extends HttpServlet {
     logger.info(String.format("Sent: %s bytes", total));
   }
 
-  private String getVideoLink2(String content) throws UnsupportedEncodingException {
+  private String getVideoLink2(String content, int fmt) throws UnsupportedEncodingException {
 	  Pattern pattern = Pattern.compile("%7C(http.+?videoplayback.+?)%2C");
 	  Matcher matcher = pattern.matcher(content);
-	  if (matcher.find()) {
-      String url = matcher.group(1);
-      return URLDecoder.decode(url, "UTF-8");
+	  String format = "%26itag%3D" + fmt + "%26";
+	  String url = null;
+	  
+	  while (matcher.find()) {
+		String u = matcher.group(1);
+		
+		if (u.indexOf(format) > -1) {
+			logger.info("getVideoLink2: match (" + u + ") for format " + fmt);
+			url = u;
+			break;
+		}
+	  }
+	  
+	  if (url != null) {
+		return URLDecoder.decode(url, "UTF-8");
 	  }
 	  throw new IllegalStateException("Cann't find video file address: "+ content);
   }
