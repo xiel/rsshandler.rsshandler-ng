@@ -34,6 +34,10 @@ public abstract class RssServlet extends HttpServlet {
   	String host = request.getParameter("host");
     String port = request.getParameter("port");
     int format = Integer.parseInt(request.getParameter("format"));
+    int fallback = 1; 
+    if (request.getParameter("fb") != null) {
+        fallback = Integer.parseInt(request.getParameter("fb"));
+    }
     String size = request.getParameter("size");
     if (size == null) {
       size = "25";
@@ -56,7 +60,7 @@ public abstract class RssServlet extends HttpServlet {
     logger.info(String.format("Request properties: %s", connection.getRequestProperties()));
     String str = Utils.readString(connection.getInputStream());
     logger.info(String.format("Headers: %s", connection.getHeaderFields()));
-    str = replaceEnclosures(str, format, host, port, "true".equals(request.getParameter("removeDescription")), "true".equals(request.getParameter("removeTitle")));
+    str = replaceEnclosures(str, format, host, port, "true".equals(request.getParameter("removeDescription")), "true".equals(request.getParameter("removeTitle")), fallback);
 //    logger.info(str);
     response.setContentType("application/rss+xml; charset=UTF-8");
     response.setStatus(HttpServletResponse.SC_OK);
@@ -70,7 +74,7 @@ public abstract class RssServlet extends HttpServlet {
   protected abstract String getRssUrl(HttpServletRequest request);
 
 //TODO try to implement normal XML parsing and element insertion, this way it should be more stable
-  String replaceEnclosures(String str, int format, String host, String port, boolean removeDescription, boolean removeTitle) {
+  String replaceEnclosures(String str, int format, String host, String port, boolean removeDescription, boolean removeTitle, int fallback) {
     Pattern pattern = Pattern.compile("<link>http\\://www.youtube.com/watch\\?v=(.+?)</link><author>");
     Matcher matcher = pattern.matcher(str);
     String formattype = "video/mp4";
@@ -81,7 +85,7 @@ public abstract class RssServlet extends HttpServlet {
       String link = matcher.group(1);
       logger.info(String.format("Video id: %s", link));
       String oldenclosure = String.format("%s</link><author>", link);
-      String newenclosure = String.format("%s</link><enclosure url=\"http://"+host+":"+port+"/video.mp4?format=%s&amp;id=%s\" length=\"35\" type=\"%s\"/><author>", link, format, link, formattype);
+      String newenclosure = String.format("%s</link><enclosure url=\"http://"+host+":"+port+"/video.mp4?format=%s&amp;id=%s&amp;fb=%s\" length=\"35\" type=\"%s\"/><author>", link, format, link, fallback, formattype);
       str = str.replace(oldenclosure, newenclosure);
     }
     if (removeTitle) {
