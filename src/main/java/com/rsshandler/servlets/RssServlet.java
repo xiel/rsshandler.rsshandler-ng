@@ -62,15 +62,22 @@ public abstract class RssServlet extends HttpServlet {
     logger.info(String.format("Headers: %s", connection.getHeaderFields()));
     str = replaceEnclosures(str, format, host, port, "true".equals(request.getParameter("removeDescription")), "true".equals(request.getParameter("removeTitle")), fallback);
 //    logger.info(str);
+
+	String poststr = getPostFetchFixups(str, request);
     response.setContentType("application/rss+xml; charset=UTF-8");
     response.setStatus(HttpServletResponse.SC_OK);
-    response.getWriter().write(str);
+    response.getWriter().write(poststr);
   }
 
   protected boolean isTimeApplicable(HttpServletRequest request) {
     return false;
   }
 
+  protected String getPostFetchFixups(String s,HttpServletRequest request) {
+    logger.info("Running default post fetch fixups");
+	return s;
+  }
+  
   protected abstract String getRssUrl(HttpServletRequest request);
 
 //TODO try to implement normal XML parsing and element insertion, this way it should be more stable
