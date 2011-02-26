@@ -3,33 +3,49 @@ package com.rsshandler;
 import net.miginfocom.swing.MigLayout;
 import javax.swing.*;
 import java.awt.*;
+import java.awt.event.*;
 import java.awt.datatransfer.Clipboard;
 import java.awt.datatransfer.ClipboardOwner;
 import java.awt.datatransfer.StringSelection;
 import java.awt.datatransfer.Transferable;
-import java.awt.event.ActionEvent;
-import java.awt.event.ActionListener;
-import java.awt.event.ItemListener;
-import java.awt.event.ItemEvent;
+import java.awt.SystemTray;
 import java.net.InetAddress;
 import java.net.UnknownHostException;
 import java.util.prefs.Preferences;
+import java.net.URL;
 
 public class Gui implements ClipboardOwner {
   private PodcastServer server;
   private JMenuItem startServer;
   private JMenuItem stopServer;
   private JFrame frame;
+  private SystemTray sysTray;
   public static final int FLV = 35;
   private int port = -1;
   private boolean proxyMode = false;
   private static final String PROXY_MODE_PREF = "proxyMode";
   private static final String PORT_PREF = "port";
-
+  private TrayIcon trayIcon;
   public void setServer(PodcastServer server) {
     this.server = server;
   }
 
+  public void restoreFromTray() {
+	frame.setState( Frame.NORMAL );
+    frame.setVisible(true);
+	sysTray.remove(trayIcon);
+  }
+  
+  public void sendToTray() {
+    frame.setVisible(false);
+    try {
+      sysTray.add(trayIcon);
+    } catch (AWTException e) {
+      System.err.println("Failed to minimize to system tray");
+	  e.printStackTrace();
+    }	
+  }
+  
   public void createGui() {
     frame = new JFrame("RSS Handler");
     frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
@@ -40,7 +56,77 @@ public class Gui implements ClipboardOwner {
     proxyMode = prefs.getBoolean(PROXY_MODE_PREF, false);
     port = prefs.getInt(PORT_PREF, 8083);
     frame.setLocationByPlatform(true);
-    frame.setVisible(true);
+	frame.setVisible(true);    
+	
+    if (SystemTray.isSupported()) {
+        WindowListener winStatelistener = new WindowAdapter() {
+          public void windowIconified(WindowEvent w) {
+			 System.out.println("Minimized window.  Sending to tray");
+	         sendToTray();
+          }
+        };
+		
+        frame.addWindowListener(winStatelistener);
+		
+        sysTray = SystemTray.getSystemTray();
+        String imgName = "images/tray.gif";
+		URL imgURL = getClass().getResource(imgName);
+		
+		if (imgURL == null) {
+			System.out.println(imgName + " not found");
+		}
+		
+        Toolkit tk = Toolkit.getDefaultToolkit();
+        Image image = null;
+        try {
+           image = tk.getImage(imgURL);
+        }
+        catch (Exception e) {
+          e.printStackTrace();
+        }
+		
+        ActionListener exitListener = new ActionListener() {
+            public void actionPerformed(ActionEvent e) {
+                System.out.println("Exiting...");
+                System.exit(0);
+            }
+        };
+
+		
+		ActionListener restoreListener = new ActionListener() {
+			public void actionPerformed(ActionEvent e) {
+				restoreFromTray();
+			}
+		};
+		
+		ActionListener aboutListener = new ActionListener() {
+			public void actionPerformed(ActionEvent e) {
+		      String version = this.getClass().getPackage().getImplementationVersion();
+		      JOptionPane.showMessageDialog(frame, "Version: " + version, "About", JOptionPane.INFORMATION_MESSAGE);
+			}
+		};
+
+        PopupMenu popup = new PopupMenu();
+        MenuItem restoreItem = new MenuItem("Restore");
+        restoreItem.addActionListener(restoreListener);
+
+        MenuItem aboutItem = new MenuItem("About");
+        aboutItem.addActionListener(aboutListener);
+		
+
+        MenuItem exitItem = new MenuItem("Exit");
+        exitItem.addActionListener(exitListener);
+
+		popup.add(restoreItem);
+		popup.add(aboutItem);
+        popup.add(exitItem);
+
+        trayIcon = new TrayIcon(image, "RSShandler", popup);
+        trayIcon.setImageAutoSize(true);
+	} else {
+	    // Tray not supported
+		System.out.println("System tray not a supported feature of this OS.  Disabling feature.");
+	}
     startServer();
   }
 
@@ -134,8 +220,8 @@ public class Gui implements ClipboardOwner {
     standardFeeds.setVisible(false);
     countries.setVisible(false);
     periods.setVisible(false);
-    standardFeeds.setToolTipText("Standart feed type");
-    countries.setToolTipText("Country for standart feed type, select Worldwide for all videos");
+    standardFeeds.setToolTipText("Standard feed type");
+    countries.setToolTipText("Country for standard feed type, select Worldwide for all videos");
     periods.setToolTipText("Period for standart feed");
     ButtonGroup types = new ButtonGroup();
     final JRadioButton typeUser = new JRadioButton("User");
@@ -201,13 +287,25 @@ public class Gui implements ClipboardOwner {
     });
 
     /*
-     * 6 = 320x180 @ FLV; 18 = 480x270 @ MP4; 22 = 1280x720 @ MP4; 35 = 640x360
+	 * https://secure.wikimedia.org/wikipedia/en/wiki/YouTube#Quality_and_codecs
+ 	 * 5 = 400x240 @ FLV; 34 = 640x360 @ FLV; 35 = 854x480 @FLV;
+	 * 18 = 480x270 @ MP4; 22 = 1280x720 @ MP4; 37 = 1920x1080 @MP4
      * 
-     * @ FLV;
      */
-
-    final JComboBox formats = new JComboBox(new Object[] { new YoutubeFormat(18, "MP4 (iTunes)"), new YoutubeFormat(17, "Compact PSP"), new YoutubeFormat(FLV, "FLV"),
-        new YoutubeFormat(22, "HD (MP4)") });
+    final JComboBox formats = new JComboBox(new Object[] { 
+		//MP4
+		new YoutubeFormat(37, "1920x1080 (MP4)"), 
+		//MP4
+		new YoutubeFormat(22, "1280x720 (MP4)"), 
+		// MP4
+		new YoutubeFormat(18, "480x360 (MP4)"),
+		//FLV
+		new YoutubeFormat(35, "854x480 (FLV)"), 
+		//FLV
+		new YoutubeFormat(34, "640x360 (FLV)"), 
+		// FLV
+		new YoutubeFormat(5, "400x240 (FLV)") });
+	
     JButton copyButton = new JButton("Copy to buffer");
     copyButton.addActionListener(new ActionListener() {
       public void actionPerformed(ActionEvent e) {
@@ -421,7 +519,7 @@ public class Gui implements ClipboardOwner {
     updateStats();
   }
 
-  public static void main(String[] args) {
+   public static void main(String[] args) {
     PodcastServer server = new PodcastServer() {
       @Override
       public int getPort() {
