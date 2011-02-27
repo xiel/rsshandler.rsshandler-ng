@@ -84,14 +84,17 @@ void createLocalDeployment(String dir, String codebase) {
   ant.mkdir(dir:dir)
   
   for(file in configurations.runtime.resolve()) {
-    ant.signjar(destDir: dir, jar: file, alias:"rsshandler", keystore:"rsshandler.keystore", storepass:"rsshandler", preservelastmodified:"true")
+    ant.signjar(destDir: dir, jar: file, alias:keyalias, keystore:keyfile, storepass:keypass, preservelastmodified:"true")
+    ant.copy(file:file, todir:"debug")
   }
   createLocalJar(dir, codebase)
   ant.copy(file:"build/libs/rsshandler-${version}.jar", tofile:"debug/rsshandler-${version}.jar")
+  
+
 }
 
 void createLocalJar(String dir, String codebase) {
-  ant.signjar(destDir: dir, jar: tasks.jar.archivePath, alias:"rsshandler", keystore:"rsshandler.keystore", storepass:"rsshandler", preservelastmodified:"true")
+  ant.signjar(destDir: dir, jar: tasks.jar.archivePath, alias:keyalias, keystore:keyfile, storepass:keypass, preservelastmodified:"true")
   ant.copy(file:"rsshandler.jnlp", tofile:"$dir/rsshandler-${version}.jnlp")
   updateJnlp("$dir/rsshandler-${version}.jnlp", codebase, true)
 }
