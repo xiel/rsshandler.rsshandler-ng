@@ -82,6 +82,7 @@ task release(dependsOn: 'jar') << {
 void createLocalDeployment(String dir, String codebase) {
   ant.delete(dir:dir)
   ant.mkdir(dir:dir)
+  ant.mkdir(dir:"debug")
   
   for(file in configurations.runtime.resolve()) {
     ant.signjar(destDir: dir, jar: file, alias:keyalias, keystore:keyfile, storepass:keypass, preservelastmodified:"true")
