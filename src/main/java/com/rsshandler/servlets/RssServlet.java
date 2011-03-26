@@ -63,7 +63,9 @@ public abstract class RssServlet extends HttpServlet {
     str = replaceEnclosures(str, format, host, port, "true".equals(request.getParameter("removeDescription")), "true".equals(request.getParameter("removeTitle")), fallback);
 //    logger.info(str);
 
-	String poststr = getPostFetchFixups(str, request);
+    String newTitle = request.getParameter("title");
+
+	String poststr = getPostFetchFixups(str, newTitle, request);
     response.setContentType("application/rss+xml; charset=UTF-8");
     response.setStatus(HttpServletResponse.SC_OK);
     response.getWriter().write(poststr);
@@ -73,9 +75,16 @@ public abstract class RssServlet extends HttpServlet {
     return false;
   }
 
-  protected String getPostFetchFixups(String s,HttpServletRequest request) {
+  protected String getPostFetchFixups(String s, String overridetitle, HttpServletRequest request) {
     logger.info("Running default post fetch fixups");
-	return s;
+	String ret = s;
+	
+	if (overridetitle != null && s != null) {
+		ret = ret.replaceAll("</url><title>.*?</title>","</url><title>" + overridetitle + "</title>");
+		ret = ret.replaceAll("</lastBuildDate><title>.*?</title>","</lastBuildDate><title>" + overridetitle + "</title>");
+ 	}
+	
+	return ret;
   }
   
   protected abstract String getRssUrl(HttpServletRequest request);

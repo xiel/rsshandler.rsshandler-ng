@@ -34,7 +34,7 @@ import java.util.logging.Logger;
 
 public class UserServlet extends RssServlet { 
     @Override
-  protected String getPostFetchFixups(String str, HttpServletRequest request) {
+  protected String getPostFetchFixups(String str, String overridetitle, HttpServletRequest request) {
     logger.info("Running UserServlet post fetch fixups");
 	
 	String ret = str;
@@ -50,6 +50,11 @@ public class UserServlet extends RssServlet {
 	  }
 	  
 	  String t = profileEntry.getUsername();
+	  
+	  if (overridetitle != null) {
+		t = overridetitle;
+	  }
+	  
       logger.info("Username: " + t);
       
 	  MediaThumbnail logo = profileEntry.getThumbnail();
