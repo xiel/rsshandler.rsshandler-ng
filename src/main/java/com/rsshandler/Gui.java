@@ -106,6 +106,13 @@ public class Gui implements ClipboardOwner {
 			}
 		};
 
+		MouseListener doubleClickListener = new MouseAdapter() {
+			public void mouseClicked(MouseEvent e) {
+				if (e.getButton() == 1 && e.getClickCount() == 2)
+					restoreFromTray();
+			}
+		};
+
         PopupMenu popup = new PopupMenu();
         MenuItem restoreItem = new MenuItem("Restore");
         restoreItem.addActionListener(restoreListener);
@@ -123,6 +130,7 @@ public class Gui implements ClipboardOwner {
 
         trayIcon = new TrayIcon(image, "RSShandler", popup);
         trayIcon.setImageAutoSize(true);
+        trayIcon.addMouseListener(doubleClickListener);
 	} else {
 	    // Tray not supported
 		System.out.println("System tray not a supported feature of this OS.  Disabling feature.");
