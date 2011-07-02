@@ -200,7 +200,7 @@ public class Gui implements ClipboardOwner {
   }
 
   private JPanel createGeneratorPanel() {
-    JPanel infoPanel = new JPanel(new MigLayout("", "[][grow][]", "[][][][][][][grow]"));
+    JPanel infoPanel = new JPanel(new MigLayout("", "[][grow][]", "[][][][][][][][grow]"));
     JLabel typeLabel = new JLabel("");
     JLabel formatLabel = new JLabel("Format");
     JLabel orderbyLabel = new JLabel("Order by");
@@ -236,10 +236,12 @@ public class Gui implements ClipboardOwner {
     final JRadioButton typePlaylist = new JRadioButton("Playlist");
     final JRadioButton typeFavorites = new JRadioButton("Favorites");
     final JRadioButton typeStandart = new JRadioButton("Standart");
+    final JRadioButton typeSubscriptions = new JRadioButton("Subscriptions");
     types.add(typeUser);
     types.add(typePlaylist);
     types.add(typeFavorites);
     types.add(typeStandart);
+    types.add(typeSubscriptions);
     typeUser.setSelected(true);
     ButtonGroup sizes = new ButtonGroup();
     final JRadioButton size25 = new JRadioButton("25 items");
@@ -357,6 +359,8 @@ public class Gui implements ClipboardOwner {
           result.setText(getPlaylistPodcastUrl(text, format, size, orderby, removeDescription.isSelected(), removeTitle.isSelected()));
         } else if (typeFavorites.isSelected()) {
           result.setText(getFavoritesPodcastUrl(text, format, size, orderby, removeDescription.isSelected(), removeTitle.isSelected()));
+        } else if (typeSubscriptions.isSelected()) {
+            result.setText(getSubscriptionsPodcastUrl(text, format, size, orderby, removeDescription.isSelected(), removeTitle.isSelected()));
         } else if (typeStandart.isSelected()) {
           StandardFeed feed = (StandardFeed) standardFeeds.getSelectedItem();
           Country country = (Country) countries.getSelectedItem();
@@ -371,6 +375,7 @@ public class Gui implements ClipboardOwner {
     infoPanel.add(typeUser, "split 4");
     infoPanel.add(typePlaylist, "");
     infoPanel.add(typeFavorites, "");
+    infoPanel.add(typeSubscriptions, "");
     infoPanel.add(typeStandart, "wrap");
     infoPanel.add(formatLabel, "");
     infoPanel.add(formats, "wrap");
@@ -414,6 +419,10 @@ public class Gui implements ClipboardOwner {
   private String getFavoritesPodcastUrl(String text, int format, int size, String orderby, boolean removeDescription, boolean removeTitle) {
     return getPodcastUrl("favorite", text, format, size, orderby, removeDescription, removeTitle);
   }
+
+  private String getSubscriptionsPodcastUrl(String text, int format, int size, String orderby, boolean removeDescription, boolean removeTitle) {
+	 return getPodcastUrl("subscriptions", text, format, size, orderby, removeDescription, removeTitle);
+ }
 
   private String getUserPodcastUrl(String text, int format, int size, String orderby, boolean removeDescription, boolean removeTitle) {
     return getPodcastUrl("user.rss", text, format, size, orderby, removeDescription, removeTitle);

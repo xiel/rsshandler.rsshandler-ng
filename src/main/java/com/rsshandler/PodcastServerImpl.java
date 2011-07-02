@@ -3,6 +3,7 @@ package com.rsshandler;
 import java.util.Arrays;
 
 import com.rsshandler.servlets.FavoriteServlet;
+import com.rsshandler.servlets.SubscriptionsServlet;
 import com.rsshandler.servlets.PlaylistServlet;
 import com.rsshandler.servlets.StandardServlet;
 import com.rsshandler.servlets.UserServlet;
@@ -39,6 +40,7 @@ public class PodcastServerImpl implements PodcastServer {
       context.addServlet(new ServletHolder(new UserServlet()), "/user.rss");
       context.addServlet(new ServletHolder(new PlaylistServlet()), "/playlist");
       context.addServlet(new ServletHolder(new FavoriteServlet()), "/favorite");
+      context.addServlet(new ServletHolder(new SubscriptionsServlet()), "/subscriptions");
       context.addServlet(new ServletHolder(new StandardServlet()), "/standard");
       context.addServlet(new ServletHolder(new VideoServlet(proxyMode)), "/video.mp4");
       server.start();
