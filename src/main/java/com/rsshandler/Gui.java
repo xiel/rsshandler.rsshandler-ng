@@ -22,9 +22,12 @@ public class Gui implements ClipboardOwner {
   private SystemTray sysTray;
   public static final int FLV = 35;
   private int port = -1;
+  private String rsshostname = null;
   private boolean proxyMode = false;
   private static final String PROXY_MODE_PREF = "proxyMode";
   private static final String PORT_PREF = "port";
+  private static final String RSS_SERVER_PREF = "rssserver";
+  
   private TrayIcon trayIcon;
   public void setServer(PodcastServer server) {
     this.server = server;
@@ -55,6 +58,12 @@ public class Gui implements ClipboardOwner {
     Preferences prefs = Preferences.userNodeForPackage(this.getClass());
     proxyMode = prefs.getBoolean(PROXY_MODE_PREF, false);
     port = prefs.getInt(PORT_PREF, 8083);
+	rsshostname = prefs.get(RSS_SERVER_PREF,"localhost");
+	
+	if (rsshostname.equals("") || rsshostname == null) {
+		rsshostname = "localhost";
+	}
+	
     frame.setLocationByPlatform(true);
 	frame.setVisible(true);    
 	
@@ -434,18 +443,23 @@ public class Gui implements ClipboardOwner {
   }
 
   private String getHostName() {
-    try {
-      return InetAddress.getLocalHost().getHostName();
-    } catch (UnknownHostException e) {
-      JOptionPane.showMessageDialog(frame, "Cann't detect IP address, please change it manually", "Error", JOptionPane.ERROR_MESSAGE);
-      return "<INSERT YOUR IP ADDRESS>";
-    }
+    //try {
+	return rsshostname;
+	  //return "localhost";
+      //return InetAddress.getLocalHost().getHostName();
+    //} catch (UnknownHostException e) {
+    //  JOptionPane.showMessageDialog(frame, "Cann't detect IP address, please change it manually", "Error", JOptionPane.ERROR_MESSAGE);
+    // return "<INSERT YOUR IP ADDRESS>";
+    //}
   }
 
   private JPanel createStartStopPanel(final JDialog settings, int portValue, boolean proxyModeValue) {
-    final JCheckBox proxyMode = new JCheckBox();
+ 	final JTextField serverName = new JTextField(1024);
+	serverName.setText("" + rsshostname);
+	final JCheckBox proxyMode = new JCheckBox();
     proxyMode.setToolTipText("Check this to proxy all videos through program, otherwise users will be redirected to result video directly from YouTube");
     proxyMode.setSelected(proxyModeValue);
+
     final JTextField port = new JTextField(5);
     port.setToolTipText("Server port number for podcast server");
     port.setText("" + portValue);
@@ -473,7 +487,7 @@ public class Gui implements ClipboardOwner {
     JButton updatePortButton = new JButton("Use new settings");
     updatePortButton.addActionListener(new ActionListener() {
       public void actionPerformed(ActionEvent e) {
-        saveSettings(Integer.parseInt(port.getText()), proxyMode.isSelected());
+        saveSettings(serverName.getText(),Integer.parseInt(port.getText()), proxyMode.isSelected());
         stopServer();
         startServer();
         settings.dispose();
@@ -487,6 +501,8 @@ public class Gui implements ClipboardOwner {
     });
 
     JPanel serverPanel = new JPanel(new MigLayout("", "[grow][grow]", "[][][grow]"));
+	serverPanel.add(new JLabel("RSS Server Name"), "w 50%");
+	serverPanel.add(serverName, "w 50%, wrap");
     serverPanel.add(new JLabel("Port"), "w 50%");
     serverPanel.add(port, "w 50%, wrap");
     serverPanel.add(new JLabel("Proxy mode"), "");
@@ -496,12 +512,14 @@ public class Gui implements ClipboardOwner {
     return serverPanel;
   }
 
-  private void saveSettings(int port, boolean isProxyMode) {
+  private void saveSettings(String server, int port, boolean isProxyMode) {
     Preferences prefs = Preferences.userNodeForPackage(this.getClass());
+	prefs.put(RSS_SERVER_PREF, server);
     prefs.putBoolean(PROXY_MODE_PREF, isProxyMode);
     prefs.putInt(PORT_PREF, port);
     this.port = port;
     this.proxyMode = isProxyMode;
+	this.rsshostname = server;
   }
 
   private void stopServer() {
