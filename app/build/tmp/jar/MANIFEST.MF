@@ -1,5 +1,0 @@
-Manifest-Version: 1.0
-provider: gradle
-Main-Class: com.rsshandler.Main
-Implementation-Version: 0.1, Sun Sep 04 18:56:34 PDT 2011
-
