@@ -1,0 +1,36 @@
+subprojects {
+    apply plugin: 'java'
+	apply plugin: 'eclipse'
+	
+	sourceCompatibility = 1.6
+	archivesBaseName = 'rsshandler-ng'	
+	version = '0.1'
+
+	repositories {
+		mavenCentral()
+	}
+
+	 dependencies {
+		compile group: 'org.eclipse.jetty', name: 'jetty-server', version: '7.0.1.v20091125'
+		compile group: 'org.eclipse.jetty', name: 'jetty-servlet', version: '7.0.1.v20091125'
+		compile group: 'org.eclipse.jetty', name: 'jetty-util', version: '7.0.1.v20091125'
+		compile group: 'org.eclipse.jetty', name: 'jetty-http', version: '7.0.1.v20091125'
+		compile group: 'javax.servlet', name: 'servlet-api', version: '2.5'
+		compile group: 'com.miglayout', name: 'miglayout', version: '3.7.2'
+		compile fileTree(dir: '../lib', include: '*.jar')
+		testCompile group: 'junit', name: 'junit', version: '4.+'
+	}
+
+debugDir = new File("$rootProject.projectDir/debug")
+	
+
+    jar {	
+        manifest.attributes provider: 'gradle'
+		destinationDir = debugDir
+	}
+	
+	//manifest.mainAttributes(
+	//	'Main-Class': 'com.rsshandler.Main',
+	//	'Implementation-Version': "${version}, ${new Date()}",
+	//)	
+}
